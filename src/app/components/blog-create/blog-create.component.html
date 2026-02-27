@@ -1,13 +1,56 @@
-<h2>Create Blog</h2>
+<div class="create-blog-container">
+  <div class="create-blog-card">
 
-<form (ngSubmit)="submit()">
-  <input [(ngModel)]="blog.name" name="name" placeholder="Name" required />
-  <br>
-  <textarea [(ngModel)]="blog.description" name="description" placeholder="Description"></textarea>
-  <br>
-  <input [(ngModel)]="blog.author" name="author" placeholder="Author" />
-  <br>
-  <input [(ngModel)]="blog.imageUrl" name="imageUrl" placeholder="Image URL" />
-  <br>
-  <button type="submit">Create</button>
-</form>
+    <h2>Create Blog</h2>
+
+    <form (ngSubmit)="submit()" #createForm="ngForm">
+
+      <div class="form-group">
+        <label>Blog Title</label>
+        <input
+          type="text"
+          [(ngModel)]="blog.name"
+          name="name"
+          required
+          placeholder="Enter blog title"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea
+          rows="4"
+          [(ngModel)]="blog.description"
+          name="description"
+          placeholder="Enter blog description"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Author</label>
+        <input
+          type="text"
+          [(ngModel)]="blog.author"
+          name="author"
+          placeholder="Author name"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Image URL</label>
+        <input
+          type="text"
+          [(ngModel)]="blog.imageUrl"
+          name="imageUrl"
+          placeholder="https://example.com/image.jpg"
+        />
+      </div>
+
+      <button type="submit" [disabled]="createForm.invalid || loading">
+  {{ loading ? 'Creating...' : 'Create Blog' }}
+</button>
+
+    </form>
+
+  </div>
+</div>

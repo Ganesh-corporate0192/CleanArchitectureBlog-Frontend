@@ -46,9 +46,9 @@
         />
       </div>
 
-      <button type="submit" [disabled]="editForm.invalid">
-        Update Blog
-      </button>
+      <button type="submit" [disabled]="editForm.invalid || loading">
+  {{ loading ? 'Updating...' : 'Update Blog' }}
+</button>
 
     </form>
 

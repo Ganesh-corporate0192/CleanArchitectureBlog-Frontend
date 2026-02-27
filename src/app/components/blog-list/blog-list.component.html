@@ -1,14 +1,35 @@
-<h2>Blog List</h2>
+<div class="blog-list-container">
 
-<a routerLink="/create">Create Blog</a>
+  <div class="header">
+    <h2>Blog List</h2>
+    <a class="create-btn" routerLink="/create">+ Create Blog</a>
+  </div>
 
-<div *ngFor="let blog of blogs">
-  <h3>{{ blog.name }}</h3>
-  <p>{{ blog.description }}</p>
-  <p><b>Author:</b> {{ blog.author }}</p>
-  <img [src]="blog.imageUrl" width="200" />
-  <br>
-  <a [routerLink]="['/edit', blog.id]">Edit</a>
-  <button (click)="delete(blog.id!)">Delete</button>
-  <hr>
+  <div class="blog-card" *ngFor="let blog of blogs">
+
+    <div class="blog-content">
+      <h3>{{ blog.name }}</h3>
+
+      <p class="description">
+        {{ blog.description }}
+      </p>
+
+      <p class="author">
+        <strong>Author:</strong> {{ blog.author }}
+      </p>
+    </div>
+
+    <div class="blog-image" *ngIf="blog.imageUrl">
+      <img [src]="blog.imageUrl" alt="Blog image" />
+    </div>
+
+    <div class="actions">
+      <a class="edit-btn" [routerLink]="['/edit', blog.id]">Edit</a>
+      <button class="delete-btn" (click)="delete(blog.id!)">
+  Delete
+</button>
+    </div>
+
+  </div>
+
 </div>

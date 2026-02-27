@@ -1,35 +1,48 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { BlogService } from '../../services/blog.service';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { Blog } from '../../models/blog';
+import { BlogService } from '../../services/blog.service';
+import { AlertService } from '../../services/alert.service';
 
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],  // ⚠ VERY IMPORTANT
-  templateUrl: './blog-list.component.html'
+  imports: [CommonModule, RouterModule],
+  templateUrl: './blog-list.component.html',
+  styleUrls: ['./blog-list.component.css']
 })
 export class BlogListComponent implements OnInit {
 
   blogs: Blog[] = [];
 
-  constructor(private blogService: BlogService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private blogService: BlogService,
+    private alert: AlertService   
+  ) {}
 
   ngOnInit(): void {
-    this.loadBlogs();
+    // ✅ DATA COMES FROM RESOLVER (SAFE ON REFRESH)
+    this.blogs = this.route.snapshot.data['blogs'];
   }
 
-  loadBlogs() {
-    this.blogService.getAll().subscribe(data => {
-      console.log("API Data:", data);
-      this.blogs = data;
-    });
+  delete(id: number): void {
+  if (!confirm('Are you sure you want to delete this blog?')) {
+    return;
   }
 
-  delete(id: number) {
-    this.blogService.delete(id).subscribe(() => {
-      this.loadBlogs();
-    });
-  }
+  this.blogService.delete(id).subscribe({
+    next: () => {
+      this.alert.success('Blog deleted successfully 🗑️');
+      this.blogService.getAll().subscribe(data => {
+        this.blogs = data;
+      });
+    },
+    error: (err) => {
+      console.error(err);
+      this.alert.error('Failed to delete blog ❌');
+    }
+  });
+}
 }

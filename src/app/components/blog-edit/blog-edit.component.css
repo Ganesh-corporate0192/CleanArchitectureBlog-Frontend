@@ -1,0 +1,126 @@
+/* ===== Page background ===== */
+.edit-blog-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f5f7;
+  padding: 24px;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ===== Card ===== */
+.edit-blog-card {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 28px 32px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Title ===== */
+.edit-blog-card h2 {
+  margin: 0 0 24px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  color: #2e2e2e;
+}
+
+/* ===== Form group ===== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+/* ===== Labels ===== */
+.form-group label {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #424242;
+}
+
+/* ===== Inputs & textarea (Kendo-like) ===== */
+.form-group input,
+.form-group textarea {
+  height: 40px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #2e2e2e;
+  border: 1px solid #c6c6c6;
+  border-radius: 4px;
+  background-color: #ffffff;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.form-group textarea {
+  height: auto;
+  resize: none;
+  min-height: 90px;
+}
+
+/* ===== Focus (Kendo style) ===== */
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #0078d4;
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.25);
+}
+
+/* ===== Disabled inputs ===== */
+.form-group input:disabled,
+.form-group textarea:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
+/* ===== Submit button (Kendo primary) ===== */
+button[type="submit"] {
+  margin-top: 8px;
+  height: 40px;
+  background-color: #0078d4;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Hover */
+button[type="submit"]:hover:not(:disabled) {
+  background-color: #106ebe;
+}
+
+/* Active */
+button[type="submit"]:active:not(:disabled) {
+  background-color: #005a9e;
+}
+
+/* Disabled button */
+button[type="submit"]:disabled {
+  background-color: #c8c8c8;
+  color: #6f6f6f;
+  cursor: not-allowed;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+  .edit-blog-card {
+    padding: 22px;
+  }
+
+  .edit-blog-card h2 {
+    font-size: 20px;
+  }
+}

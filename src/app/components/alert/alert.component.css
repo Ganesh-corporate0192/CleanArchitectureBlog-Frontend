@@ -1,0 +1,45 @@
+.alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+
+  padding: 12px 18px;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #ffffff;
+
+  /* 🔥 FORCE SOLID BACKGROUND */
+  background-color: #323130;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+
+  z-index: 9999;
+
+  /* Animation */
+  animation: fadeSlideIn 0.25s ease;
+}
+
+/* SUCCESS */
+.alert.success {
+  background-color: #107c10; /* solid green */
+}
+
+/* ERROR */
+.alert.error {
+  background-color: #d13438; /* solid red */
+}
+
+/* Animation */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
