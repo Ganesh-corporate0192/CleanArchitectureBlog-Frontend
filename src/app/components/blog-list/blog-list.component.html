@@ -1,0 +1,14 @@
+<h2>Blog List</h2>
+
+<a routerLink="/create">Create Blog</a>
+
+<div *ngFor="let blog of blogs">
+  <h3>{{ blog.name }}</h3>
+  <p>{{ blog.description }}</p>
+  <p><b>Author:</b> {{ blog.author }}</p>
+  <img [src]="blog.imageUrl" width="200" />
+  <br>
+  <a [routerLink]="['/edit', blog.id]">Edit</a>
+  <button (click)="delete(blog.id!)">Delete</button>
+  <hr>
+</div>
