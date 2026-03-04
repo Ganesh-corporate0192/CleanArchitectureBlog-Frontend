@@ -26,44 +26,34 @@ export class BlogEditComponent implements OnInit {
   id!: number;
   loading = false;
 
+  // 🔥 Field-level error
+  imageUrlError = '';
+
   constructor(
     private route: ActivatedRoute,
     private blogService: BlogService,
     private router: Router,
-    private alert: AlertService        // ✅ ALERT SERVICE
+    private alert: AlertService
   ) {}
 
   ngOnInit(): void {
-    console.log('BlogEditComponent loaded');
-
     this.route.paramMap.subscribe(params => {
       this.id = Number(params.get('id'));
-      console.log('Route id:', this.id);
-
       if (!this.id) {
         this.alert.error('Invalid blog id');
         return;
       }
 
-      this.loading = true;
-
       this.blogService.getById(this.id).subscribe({
         next: (data) => {
-          console.log('API RESPONSE:', data);
-
-          // ✅ Mutate existing object (keeps ngModel binding)
           this.blog.id = data.id;
           this.blog.name = data.name;
           this.blog.description = data.description;
           this.blog.author = data.author;
           this.blog.imageUrl = data.imageUrl;
-
-          this.loading = false;
         },
-        error: (err) => {
-          console.error(err);
-          this.loading = false;
-          this.alert.error('Failed to load blog details');
+        error: () => {
+          this.alert.error('Failed to load blog');
         }
       });
     });
@@ -71,6 +61,7 @@ export class BlogEditComponent implements OnInit {
 
   update(): void {
     this.loading = true;
+    this.imageUrlError = ''; // reset
 
     this.blogService.update(this.id, this.blog).subscribe({
       next: () => {
@@ -78,11 +69,37 @@ export class BlogEditComponent implements OnInit {
         this.alert.success('Blog updated successfully ✅');
         this.router.navigate(['/']);
       },
-      error: (err) => {
-        console.error(err);
+      error: (error) => {
         this.loading = false;
-        this.alert.error('Failed to update blog ❌');
+
+        const backendErrors = this.getBackendErrors(error);
+
+        // Popup alert
+        this.alert.error(backendErrors.join('\n'));
+
+        // Inline ImageUrl error
+        const imageError = backendErrors.find(e =>
+          e.toLowerCase().includes('image')
+        );
+
+        if (imageError) {
+          this.imageUrlError = imageError;
+        }
       }
     });
+  }
+
+  // 🔧 Backend error extractor
+  private getBackendErrors(error: any): string[] {
+
+    if (error?.error?.errors && Array.isArray(error.error.errors)) {
+      return error.error.errors;
+    }
+
+    if (error?.error?.errors && typeof error.error.errors === 'object') {
+      return Object.values(error.error.errors).flat() as string[];
+    }
+
+    return ['Invalid input'];
   }
 }

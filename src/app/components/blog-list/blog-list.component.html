@@ -1,3 +1,5 @@
+
+
 <div class="blog-list-container">
 
   <div class="header">
@@ -7,29 +9,36 @@
 
   <div class="blog-card" *ngFor="let blog of blogs">
 
-    <div class="blog-content">
-      <h3>{{ blog.name }}</h3>
+    <div class="blog-grid">
 
-      <p class="description">
-        {{ blog.description }}
-      </p>
+      <!-- Image section -->
+      <div class="blog-image" *ngIf="blog.imageUrl">
+        <img [src]="blog.imageUrl" alt="Blog image" />
+      </div>
 
-      <p class="author">
-        <strong>Author:</strong> {{ blog.author }}
-      </p>
-    </div>
+      <!-- Content section -->
+      <div class="blog-content">
+        <h3>{{ blog.name }}</h3>
 
-    <div class="blog-image" *ngIf="blog.imageUrl">
-      <img [src]="blog.imageUrl" alt="Blog image" />
-    </div>
+        <p class="description">
+          {{ blog.description }}
+        </p>
 
-    <div class="actions">
-      <a class="edit-btn" [routerLink]="['/edit', blog.id]">Edit</a>
-      <button class="delete-btn" (click)="delete(blog.id!)">
-  Delete
-</button>
+        <p class="author">
+          <strong>Author:</strong> {{ blog.author }}
+        </p>
+
+        <div class="actions">
+          <a class="edit-btn" [routerLink]="['/edit', blog.id]">Edit</a>
+          <button class="delete-btn" (click)="delete(blog.id!)">
+            Delete
+          </button>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
 </div>
+

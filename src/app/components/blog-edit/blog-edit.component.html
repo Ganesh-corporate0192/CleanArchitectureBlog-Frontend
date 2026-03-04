@@ -23,6 +23,7 @@
           [(ngModel)]="blog.description"
           name="description"
           placeholder="Enter blog description"
+          required
         ></textarea>
       </div>
 
@@ -33,6 +34,7 @@
           [(ngModel)]="blog.author"
           name="author"
           placeholder="Author name"
+          required
         />
       </div>
 
@@ -43,7 +45,12 @@
           [(ngModel)]="blog.imageUrl"
           name="imageUrl"
           placeholder="https://example.com/image.jpg"
+          required
         />
+         <!-- 🔥 Backend validation error -->
+        <div class="field-error" *ngIf="imageUrlError">
+            {{ imageUrlError }}
+        </div>
       </div>
 
       <button type="submit" [disabled]="editForm.invalid || loading">
