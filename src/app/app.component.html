@@ -1,31 +1,40 @@
 <div class="app-container">
 
-  <!-- Header -->
-  <header class="app-header">
-    <h1>Clean Architecture Blog</h1>
+  <!-- Material Header -->
+  <mat-toolbar color="primary">
 
-    <nav class="nav-bar">
-      <a
-        routerLink="/"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
+    <span class="logo">Clean Architecture Blog</span>
+
+    <span class="spacer"></span>
+
+    <nav>
+      <button mat-button routerLink="/" routerLinkActive="active">
         Home
-      </a>
+      </button>
 
-      
+      <button mat-button routerLink="/create">
+        Create Blog
+      </button>
     </nav>
-  </header>
 
-  <!-- Main content -->
+  </mat-toolbar>
+
+
+  <!-- Main Content -->
   <main class="app-content">
+
     <app-alert></app-alert>
+
     <router-outlet></router-outlet>
+
   </main>
 
+
   <!-- Footer -->
-  <footer class="app-footer">
+  <mat-toolbar color="accent" class="footer">
+
     © 2026 Clean Architecture Blog
-  </footer>
+
+  </mat-toolbar>
 
 </div>

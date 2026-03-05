@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
 import { Blog } from '../../models/blog';
 import { AlertService } from '../../services/alert.service';
+import { MaterialModule } from '../../material/material.module';
 
 @Component({
   selector: 'app-blog-create',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,MaterialModule],
   templateUrl: './blog-create.component.html',
   styleUrls: ['./blog-create.component.css']
 })

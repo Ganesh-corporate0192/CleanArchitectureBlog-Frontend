@@ -5,11 +5,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BlogService } from '../../services/blog.service';
 import { Blog } from '../../models/blog';
 import { AlertService } from '../../services/alert.service';
+import { MaterialModule } from '../../material/material.module';
 
 @Component({
   selector: 'app-blog-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MaterialModule],
   templateUrl: './blog-edit.component.html',
   styleUrls: ['./blog-edit.component.css']
 })

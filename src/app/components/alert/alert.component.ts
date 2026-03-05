@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AlertService, AlertMessage } from '../../services/alert.service';
+import { MaterialModule } from '../../material/material.module';
 
 @Component({
   selector: 'app-alert',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,MaterialModule],
   templateUrl: './alert.component.html',
   styleUrls: ['./alert.component.css']
 })

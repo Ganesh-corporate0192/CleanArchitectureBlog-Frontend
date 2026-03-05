@@ -1,24 +1,41 @@
-
-
 <div class="blog-list-container">
 
+  <!-- Header -->
   <div class="header">
+
     <h2>Blog List</h2>
-    <a class="create-btn" routerLink="/create">+ Create Blog</a>
+
+    <button
+      mat-raised-button
+      color="primary"
+      routerLink="/create"
+    >
+      <mat-icon>add</mat-icon>
+      Create Blog
+    </button>
+
   </div>
 
-  <div class="blog-card" *ngFor="let blog of blogs">
 
-    <div class="blog-grid">
+  <!-- Blog Grid -->
+  <div class="blog-grid">
 
-      <!-- Image section -->
-      <div class="blog-image" *ngIf="blog.imageUrl">
-        <img [src]="blog.imageUrl" alt="Blog image" />
-      </div>
+    <mat-card class="blog-card" *ngFor="let blog of blogs">
 
-      <!-- Content section -->
-      <div class="blog-content">
-        <h3>{{ blog.name }}</h3>
+      <!-- Blog Image -->
+      <img
+        mat-card-image
+        *ngIf="blog.imageUrl"
+        [src]="blog.imageUrl"
+        alt="Blog image"
+      />
+
+      <!-- Blog Content -->
+      <mat-card-content>
+
+        <h3 class="blog-title">
+          {{ blog.name }}
+        </h3>
 
         <p class="description">
           {{ blog.description }}
@@ -28,17 +45,34 @@
           <strong>Author:</strong> {{ blog.author }}
         </p>
 
-        <div class="actions">
-          <a class="edit-btn" [routerLink]="['/edit', blog.id]">Edit</a>
-          <button class="delete-btn" (click)="delete(blog.id!)">
-            Delete
-          </button>
-        </div>
-      </div>
+      </mat-card-content>
 
-    </div>
+
+      <!-- Action Buttons -->
+      <mat-card-actions>
+
+        <button
+          mat-stroked-button
+          color="primary"
+          [routerLink]="['/edit', blog.id]"
+        >
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+
+        <button
+          mat-stroked-button
+          color="warn"
+          (click)="delete(blog.id!)"
+        >
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+
+      </mat-card-actions>
+
+    </mat-card>
 
   </div>
 
 </div>
-

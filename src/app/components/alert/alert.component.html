@@ -1,8 +1,20 @@
-<div
-  *ngIf="visible"
-  class="alert"
-  [class.success]="alert?.type === 'success'"
-  [class.error]="alert?.type === 'error'"
->
-  {{ alert?.message }}
+<div *ngIf="visible">
+
+  <mat-card
+    class="alert-card"
+    [ngClass]="{
+      'success': alert?.type === 'success',
+      'error': alert?.type === 'error'
+    }"
+  >
+
+    <mat-icon *ngIf="alert?.type === 'success'">check_circle</mat-icon>
+    <mat-icon *ngIf="alert?.type === 'error'">error</mat-icon>
+
+    <span class="message">
+      {{ alert?.message }}
+    </span>
+
+  </mat-card>
+
 </div>

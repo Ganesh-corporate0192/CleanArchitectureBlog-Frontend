@@ -1,64 +1,110 @@
 <div class="create-blog-container">
-  <div class="create-blog-card">
+
+  <mat-card class="create-blog-card">
 
     <h2>Create Blog</h2>
 
     <form (ngSubmit)="submit()" #createForm="ngForm">
 
-      <div class="form-group">
-        <label>Blog Title</label>
+      <!-- Blog Title -->
+      <mat-form-field appearance="outline" class="full-width">
+
+        <mat-label>Blog Title</mat-label>
+
         <input
-          type="text"
+          matInput
           [(ngModel)]="blog.name"
           name="name"
-          required
           placeholder="Enter blog title"
-          required  
+          required
         />
-      </div>
 
-      <div class="form-group">
-        <label>Description</label>
+        <mat-error *ngIf="createForm.controls['name']?.invalid">
+          Blog title is required
+        </mat-error>
+
+      </mat-form-field>
+
+
+      <!-- Description -->
+      <mat-form-field appearance="outline" class="full-width">
+
+        <mat-label>Description</mat-label>
+
         <textarea
+          matInput
           rows="4"
           [(ngModel)]="blog.description"
           name="description"
           placeholder="Enter blog description"
           required
         ></textarea>
-      </div>
 
-      <div class="form-group">
-        <label>Author</label>
+        <mat-error *ngIf="createForm.controls['description']?.invalid">
+          Description is required
+        </mat-error>
+
+      </mat-form-field>
+
+
+      <!-- Author -->
+      <mat-form-field appearance="outline" class="full-width">
+
+        <mat-label>Author</mat-label>
+
         <input
-          type="text"
+          matInput
           [(ngModel)]="blog.author"
           name="author"
           placeholder="Author name"
-            required
+          required
         />
-      </div>
 
-      <div class="form-group">
-        <label>Image URL</label>
+        <mat-error *ngIf="createForm.controls['author']?.invalid">
+          Author is required
+        </mat-error>
+
+      </mat-form-field>
+
+
+      <!-- Image URL -->
+      <mat-form-field appearance="outline" class="full-width">
+
+        <mat-label>Image URL</mat-label>
+
         <input
-          type="text"
+          matInput
           [(ngModel)]="blog.imageUrl"
           name="imageUrl"
           placeholder="https://example.com/image.jpg"
           required
         />
-        <!-- 🔥 Backend validation message -->
-        <div class="field-error" *ngIf="imageUrlError">
-            {{ imageUrlError }}
-        </div>
+
+        <mat-error *ngIf="createForm.controls['imageUrl']?.invalid">
+          Image URL is required
+        </mat-error>
+
+      </mat-form-field>
+
+
+      <!-- Backend validation message -->
+      <div class="field-error" *ngIf="imageUrlError">
+        {{ imageUrlError }}
       </div>
 
-      <button type="submit" [disabled]="createForm.invalid || loading">
-  {{ loading ? 'Creating...' : 'Create Blog' }}
-</button>
+
+      <!-- Submit Button -->
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="createForm.invalid || loading"
+      >
+        {{ loading ? 'Creating...' : 'Create Blog' }}
+      </button>
 
     </form>
 
-  </div>
+  </mat-card>
+
 </div>

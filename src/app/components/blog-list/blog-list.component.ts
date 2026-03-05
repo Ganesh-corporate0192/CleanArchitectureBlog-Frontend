@@ -4,11 +4,12 @@ import { RouterModule, ActivatedRoute } from '@angular/router';
 import { Blog } from '../../models/blog';
 import { BlogService } from '../../services/blog.service';
 import { AlertService } from '../../services/alert.service';
+import { MaterialModule } from '../../material/material.module';
 
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule,MaterialModule],
   templateUrl: './blog-list.component.html',
   styleUrls: ['./blog-list.component.css']
 })
