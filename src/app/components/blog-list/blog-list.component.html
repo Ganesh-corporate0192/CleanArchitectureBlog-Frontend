@@ -8,30 +8,39 @@
     <button
       mat-raised-button
       color="primary"
-      routerLink="/create"
-    >
+      routerLink="/create">
+
       <mat-icon>add</mat-icon>
       Create Blog
+
     </button>
 
   </div>
 
 
-  <!-- Blog Grid -->
-  <div class="blog-grid">
+  <!-- Loading Indicator -->
+<div *ngIf="loading" class="loader-container">
+  <kendo-loader type="infinite-spinner"></kendo-loader>
+</div>
 
-    <mat-card class="blog-card" *ngFor="let blog of blogs">
+ <!-- Blog Grid -->
+  <div class="blog-grid" *ngIf="!loading">
+
+    <kendo-card
+      class="blog-card"
+      *ngFor="let blog of blogs"
+    >
 
       <!-- Blog Image -->
       <img
-        mat-card-image
         *ngIf="blog.imageUrl"
         [src]="blog.imageUrl"
         alt="Blog image"
+        class="blog-image"
       />
 
       <!-- Blog Content -->
-      <mat-card-content>
+      <kendo-card-body>
 
         <h3 class="blog-title">
           {{ blog.name }}
@@ -45,33 +54,37 @@
           <strong>Author:</strong> {{ blog.author }}
         </p>
 
-      </mat-card-content>
+      </kendo-card-body>
 
 
       <!-- Action Buttons -->
-      <mat-card-actions>
+      <kendo-card-actions>
 
         <button
-          mat-stroked-button
-          color="primary"
-          [routerLink]="['/edit', blog.id]"
-        >
+          kendoButton
+          themeColor="primary"
+          fillMode="outline"
+          [routerLink]="['/edit', blog.id]">
+
           <mat-icon>edit</mat-icon>
           Edit
+
         </button>
 
         <button
-          mat-stroked-button
-          color="warn"
-          (click)="delete(blog.id!)"
-        >
+          kendoButton
+          themeColor="error"
+          fillMode="outline"
+          (click)="delete(blog.id!)">
+
           <mat-icon>delete</mat-icon>
           Delete
+
         </button>
 
-      </mat-card-actions>
+      </kendo-card-actions>
 
-    </mat-card>
+    </kendo-card>
 
   </div>
 

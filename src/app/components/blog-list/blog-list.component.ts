@@ -1,74 +1,131 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute ,Router} from '@angular/router';
+
 import { Blog } from '../../models/blog';
 import { BlogService } from '../../services/blog.service';
 import { AlertService } from '../../services/alert.service';
+
 import { MaterialModule } from '../../material/material.module';
 
+import { LayoutModule } from '@progress/kendo-angular-layout';
+import { ButtonsModule } from '@progress/kendo-angular-buttons';
+import { IndicatorsModule } from '@progress/kendo-angular-indicators';
+
+import { switchMap } from 'rxjs/operators';
+
+import { ChangeDetectorRef } from '@angular/core';
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [CommonModule, RouterModule,MaterialModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    
+    MaterialModule,
+    LayoutModule,
+    ButtonsModule,
+    IndicatorsModule
+  ],
   templateUrl: './blog-list.component.html',
   styleUrls: ['./blog-list.component.css']
 })
 export class BlogListComponent implements OnInit {
 
   blogs: Blog[] = [];
+  loading: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private blogService: BlogService,
-    private alert: AlertService
+    private alert: AlertService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    // ✅ Resolver data (works on refresh & first load)
+
+    // Resolver data (first load)
     this.blogs = this.route.snapshot.data['blogs'] ?? [];
+
+    this.loading = false;
   }
 
-  delete(id: number): void {
-    if (!confirm('Are you sure you want to delete this blog?')) {
-      return;
-    }
+  /**
+   * Reload blogs from API
+   */
+  loadBlogs(): void {
 
-    this.blogService.delete(id).subscribe({
-      next: () => {
-        this.alert.success('Blog deleted successfully 🗑️');
+    this.loading = true;
 
-        // Reload list after delete
-        this.blogService.getAll().subscribe(data => {
-          this.blogs = data;
-        });
+    this.blogService.getAll().subscribe({
+
+      next: (data) => {
+        this.blogs = data;
+        this.loading = false;
+        this.cdr.markForCheck();  // Ensure view updates after async data load
       },
-      error: (error) => {
-        // ❌ NO console.error
-        const message = this.extractErrorMessage(error);
-        this.alert.error(message);
+
+      error: () => {
+        this.loading = false;
+        this.alert.error('Failed to reload blogs.');
+        this.cdr.markForCheck();
       }
+
     });
   }
 
-  // 🔥 Centralized backend error handling
+delete(id: number): void {
+
+  if (!confirm('Are you sure you want to delete this blog?')) {
+    return;
+  }
+
+  this.loading = true;
+
+  this.blogService.delete(id).pipe(
+
+    switchMap(() => {
+      this.alert.success('Blog deleted successfully 🗑️');
+      return this.blogService.getAll();
+    })
+
+  ).subscribe({
+
+    next: (blogs) => {
+      this.blogs = blogs;
+      this.loading = false;
+      this.cdr.markForCheck();
+    },
+
+    error: (error) => {
+      this.loading = false;
+      const message = this.extractErrorMessage(error);
+      this.alert.error(message);
+    }
+
+  });
+
+}
+
+  /**
+   * Centralized backend error handling
+   */
   private extractErrorMessage(error: any): string {
 
-    // Case 1: Swagger-style validation errors (array)
     if (error?.error?.errors && Array.isArray(error.error.errors)) {
       return error.error.errors.join(', ');
     }
 
-    // Case 2: ASP.NET ModelState errors (object)
     if (error?.error?.errors && typeof error.error.errors === 'object') {
       return Object.values(error.error.errors).flat().join(', ');
     }
 
-    // Case 3: Backend message
     if (error?.error?.message) {
       return error.error.message;
     }
 
-    // Fallback
     return 'Failed to delete blog. Please try again.';
   }
+
 }

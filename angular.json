@@ -27,6 +27,7 @@
             ],
             "styles": [
               "src/material-theme.scss",
+              "node_modules/@progress/kendo-theme-default/dist/all.css",
               "src/styles.css"
             ]
           },
