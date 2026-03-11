@@ -15,17 +15,19 @@ import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { switchMap } from 'rxjs/operators';
 
 import { ChangeDetectorRef } from '@angular/core';
+import { MatSnackBar,MatSnackBarModule } from '@angular/material/snack-bar';
+
 @Component({
   selector: 'app-blog-list',
   standalone: true,
   imports: [
     CommonModule,
     RouterModule,
-    
+    MatSnackBarModule,    
     MaterialModule,
     LayoutModule,
     ButtonsModule,
-    IndicatorsModule
+    IndicatorsModule    
   ],
   templateUrl: './blog-list.component.html',
   styleUrls: ['./blog-list.component.css']
@@ -40,7 +42,8 @@ export class BlogListComponent implements OnInit {
     private router: Router,
     private blogService: BlogService,
     private alert: AlertService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -68,7 +71,9 @@ export class BlogListComponent implements OnInit {
 
       error: () => {
         this.loading = false;
-        this.alert.error('Failed to reload blogs.');
+        this.snackBar.open('Failed to load blogs. Please try again.', 'Close', {
+          duration: 3000
+        });
         this.cdr.markForCheck();
       }
 
@@ -86,7 +91,9 @@ delete(id: number): void {
   this.blogService.delete(id).pipe(
 
     switchMap(() => {
-      this.alert.success('Blog deleted successfully 🗑️');
+      this.snackBar.open('Blog deleted successfully ✅', 'Close', {
+        duration: 3000
+      });
       return this.blogService.getAll();
     })
 

@@ -6,11 +6,12 @@ import { BlogService } from '../../services/blog.service';
 import { Blog } from '../../models/blog';
 import { AlertService } from '../../services/alert.service';
 import { MaterialModule } from '../../material/material.module';
+import { MatSnackBar,MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-blog-create',
   standalone: true,
-  imports: [CommonModule, FormsModule,MaterialModule],
+  imports: [CommonModule, FormsModule,MaterialModule, MatSnackBarModule],
   templateUrl: './blog-create.component.html',
   styleUrls: ['./blog-create.component.css']
 })
@@ -29,7 +30,7 @@ export class BlogCreateComponent {
   constructor(
     private blogService: BlogService,
     private router: Router,
-    private alert: AlertService        // ✅ ALERT SERVICE
+    private snackBar: MatSnackBar
   ) {}
   imageUrlError = '';
   submit(): void {
@@ -38,7 +39,9 @@ export class BlogCreateComponent {
   this.blogService.create(this.blog).subscribe({
     next: () => {
       this.loading = false;
-      this.alert.success('Blog created successfully ✅');
+      this.snackBar.open('Blog created successfully ✅', 'Close', {
+        duration: 3000
+      });
       this.router.navigate(['/']);
     },
    error: (error) => {
@@ -47,9 +50,6 @@ export class BlogCreateComponent {
   this.imageUrlError = ''; // reset
 
   const backendErrors = this.getBackendErrors(error);
-
-  // Show popup
-  this.alert.error(backendErrors.join('\n'));
 
   // Show below ImageUrl input
   const imageError = backendErrors.find(e =>

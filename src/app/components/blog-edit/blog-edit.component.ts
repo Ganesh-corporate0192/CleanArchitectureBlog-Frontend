@@ -6,11 +6,12 @@ import { BlogService } from '../../services/blog.service';
 import { Blog } from '../../models/blog';
 import { AlertService } from '../../services/alert.service';
 import { MaterialModule } from '../../material/material.module';
+import { MatSnackBar,MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-blog-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, MaterialModule],
+  imports: [CommonModule, FormsModule, MaterialModule, MatSnackBarModule],
   templateUrl: './blog-edit.component.html',
   styleUrls: ['./blog-edit.component.css']
 })
@@ -34,16 +35,21 @@ export class BlogEditComponent implements OnInit {
     private route: ActivatedRoute,
     private blogService: BlogService,
     private router: Router,
-    private alert: AlertService
+    private alert: AlertService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
       this.id = Number(params.get('id'));
       if (!this.id) {
-        this.alert.error('Invalid blog id');
+        this.snackBar.open('Invalid blog ID', 'Close', {
+          duration: 3000
+        });
+        this.router.navigate(['/']);
         return;
       }
+        
 
       this.blogService.getById(this.id).subscribe({
         next: (data) => {
@@ -54,7 +60,11 @@ export class BlogEditComponent implements OnInit {
           this.blog.imageUrl = data.imageUrl;
         },
         error: () => {
-          this.alert.error('Failed to load blog');
+          
+          this.snackBar.open('Failed to load blog', 'Close', {
+            duration: 3000
+          });
+          this.router.navigate(['/']);
         }
       });
     });
@@ -67,7 +77,9 @@ export class BlogEditComponent implements OnInit {
     this.blogService.update(this.id, this.blog).subscribe({
       next: () => {
         this.loading = false;
-        this.alert.success('Blog updated successfully ✅');
+        this.snackBar.open('Blog updated successfully ✅', 'Close', {
+          duration: 3000
+        });
         this.router.navigate(['/']);
       },
       error: (error) => {
@@ -76,7 +88,10 @@ export class BlogEditComponent implements OnInit {
         const backendErrors = this.getBackendErrors(error);
 
         // Popup alert
-        this.alert.error(backendErrors.join('\n'));
+        // this.alert.error(backendErrors.join('\n'));
+        this.snackBar.open('Failed to update blog. Please check the errors.', 'Close', {
+          duration: 3000
+        });
 
         // Inline ImageUrl error
         const imageError = backendErrors.find(e =>

@@ -21,3 +21,8 @@
 .footer {
   justify-content: center;
 }
+.header-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
