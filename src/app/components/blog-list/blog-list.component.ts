@@ -73,16 +73,29 @@ export class BlogListComponent implements OnInit {
    */
   startEdit(blog: Blog): void {
 
-    this.selectedBlog = { ...blog };
+    this.selectedBlog = this.sanitizeBlog({ ...blog });
 
     // store original copy
-  this.originalEditingBlog = { ...blog };
+  this.originalEditingBlog = this.sanitizeBlog({ ...blog });
 
     // reset validation when opening editor
     this.imageUrlError = '';
 
     this.drawerOpen = true;
   }
+
+  // Sanitize blog data by trimming whitespace and handling null/undefined
+  sanitizeBlog(blog: Blog): Blog {
+
+  return {
+    ...blog,
+    name: blog.name?.trim() ?? '',
+    description: blog.description?.trim() ?? '',
+    author: blog.author?.trim() ?? '',
+    imageUrl: blog.imageUrl?.trim() ?? ''
+  };
+
+}
 
   /**
    * Add edited blog to save list
@@ -91,7 +104,9 @@ addToSaveList(): void {
 
   if (!this.selectedBlog) return;
 
-  // ⭐ Check if anything actually changed
+  // sanitize before saving
+  const cleanedBlog = this.sanitizeBlog(this.selectedBlog);
+
   if (!this.hasChanges()) {
 
     this.snackBar.open(
@@ -103,19 +118,18 @@ addToSaveList(): void {
     return;
   }
 
-  const index = this.editedBlogs.findIndex(b => b.id === this.selectedBlog!.id);
+  const index = this.editedBlogs.findIndex(b => b.id === cleanedBlog.id);
 
   if (index === -1) {
-    this.editedBlogs.push({ ...this.selectedBlog });
+    this.editedBlogs.push({ ...cleanedBlog });
   } else {
-    this.editedBlogs[index] = { ...this.selectedBlog };
+    this.editedBlogs[index] = { ...cleanedBlog };
   }
 
-  // ⭐ Update UI card immediately (preview changes)
-  const blogIndex = this.blogs.findIndex(b => b.id === this.selectedBlog!.id);
+  const blogIndex = this.blogs.findIndex(b => b.id === cleanedBlog.id);
 
   if (blogIndex !== -1) {
-    this.blogs[blogIndex] = { ...this.selectedBlog };
+    this.blogs[blogIndex] = { ...cleanedBlog };
   }
 
   this.snackBar.open(
