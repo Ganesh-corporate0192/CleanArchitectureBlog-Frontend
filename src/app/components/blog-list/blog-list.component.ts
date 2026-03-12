@@ -280,46 +280,46 @@ export class BlogListComponent implements OnInit {
 
   }
 
-  delete(id: number): void {
+delete(id: number): void {
 
-    if (!confirm('Are you sure you want to delete this blog?')) return;
+  if (!confirm('Are you sure you want to delete this blog?')) return;
 
-    this.loading.set(true);
+  this.loading.set(true);
 
-    this.blogService.delete(id).pipe(
+  this.blogService.delete(id).subscribe({
 
-      switchMap(() => {
+    next: () => {
 
-        this.snackBar.open(
-          'Blog deleted successfully ✅',
-          'Close',
-          { duration: 3000 }
-        );
+      this.snackBar.open(
+        'Blog deleted successfully ✅',
+        'Close',
+        { duration: 3000 }
+      );
 
-        return this.blogService.getAll();
+      // Remove blog locally instead of calling API again
+      this.blogs.update(list => list.filter(blog => blog.id !== id));
 
-      })
+      this.originalBlogs.update(list => list.filter(blog => blog.id !== id));
 
-    ).subscribe({
+      this.editedBlogs.update(list => list.filter(blog => blog.id !== id));
 
-      next: blogs => {
+      this.loading.set(false);
 
-        this.blogs.set(blogs);
-        this.originalBlogs.set(JSON.parse(JSON.stringify(blogs)));
-        this.loading.set(false);
+    },
 
-      },
+    error: (error) => {
 
-      error: error => {
+      this.loading.set(false);
 
-        this.loading.set(false);
-        this.alert.error(this.extractErrorMessage(error));
+      const message = this.extractErrorMessage(error);
 
-      }
+      this.alert.error(message);
 
-    });
+    }
 
-  }
+  });
+
+}
 
   private extractErrorMessage(error: any): string {
 
