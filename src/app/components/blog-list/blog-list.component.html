@@ -24,7 +24,7 @@
 
 
       <!-- Save All -->
-      <div *ngIf="editedBlogs.length > 0" style="margin:15px 0; text-align:right;">
+      <div *ngIf="editedBlogs().length > 0" style="margin:15px 0; text-align:right;">
 
         <button
           mat-raised-button
@@ -39,18 +39,18 @@
 
 
       <!-- Loader -->
-      <div *ngIf="loading" class="loader-container">
+      <div *ngIf="loading()" class="loader-container">
         <kendo-loader type="infinite-spinner"></kendo-loader>
       </div>
 
 
       <!-- Blog Grid -->
-      <div class="blog-grid" *ngIf="!loading">
+      <div class="blog-grid" *ngIf="!loading()">
 
         <kendo-card
           class="blog-card"
-          *ngFor="let blog of blogs"
-          [class.edited-card]="editedBlogs.some(b => b.id === blog.id)">
+          *ngFor="let blog of blogs()"
+          [class.edited-card]="editedBlogs().some(b => b.id === blog.id)">
 
           <!-- Image -->
           <img
@@ -63,20 +63,28 @@
 
           <kendo-card-body>
 
-            <h3 class="blog-title"
-            [class.edited-field]="isFieldEdited(blog.id!, 'name')">
->
+            <h3
+              class="blog-title"
+              [class.edited-field]="isFieldEdited(blog.id!, 'name')">
+
               {{ blog.name }}
+
             </h3>
 
-            <p class="description"
-            [class.edited-field]="isFieldEdited(blog.id!, 'description')">
+            <p
+              class="description"
+              [class.edited-field]="isFieldEdited(blog.id!, 'description')">
+
               {{ blog.description }}
+
             </p>
 
-            <p class="author"
-            [class.edited-field]="isFieldEdited(blog.id!, 'author')">
+            <p
+              class="author"
+              [class.edited-field]="isFieldEdited(blog.id!, 'author')">
+
               <strong>Author:</strong> {{ blog.author }}
+
             </p>
 
           </kendo-card-body>
@@ -123,10 +131,10 @@
   <mat-drawer
     mode="over"
     position="end"
-    [(opened)]="drawerOpen"
+    [opened]="drawerOpen()"
     style="width:420px;padding:20px;">
 
-    <div *ngIf="selectedBlog">
+    <div *ngIf="selectedBlog() as selectedBlog">
 
       <div style="display:flex;justify-content:space-between;align-items:center">
 
@@ -216,10 +224,9 @@
             #imageUrl="ngModel"
             placeholder="https://example.com/image.jpg"
             (blur)="validateImageUrl()"
-            (input)="imageUrlError=''"
+            (input)="imageUrlError.set('')"
           />
 
-          <!-- Required validation -->
           <mat-error *ngIf="imageUrl.invalid && imageUrl.touched">
             Image URL is required
           </mat-error>
@@ -227,15 +234,15 @@
         </mat-form-field>
 
 
-        <!-- Custom validation message -->
-        <div class="field-error" *ngIf="imageUrlError">
-          {{ imageUrlError }}
+        <!-- Custom validation -->
+        <div class="field-error" *ngIf="imageUrlError()">
+          {{ imageUrlError() }}
         </div>
 
 
         <!-- Image Preview -->
         <img
-          *ngIf="selectedBlog.imageUrl && !imageUrlError"
+          *ngIf="selectedBlog.imageUrl && !imageUrlError()"
           [src]="selectedBlog.imageUrl"
           (error)="onImageError()"
           style="width:100%;margin-top:10px;border-radius:8px"
@@ -246,12 +253,12 @@
         <div style="margin-top:20px">
 
           <button
-                mat-raised-button
-                color="primary"
-                [disabled]="editForm.invalid || imageUrlError || !hasChanges()"
-                (click)="addToSaveList()">
+            mat-raised-button
+            color="primary"
+            [disabled]="editForm.invalid || imageUrlError() || !hasChanges()"
+            (click)="addToSaveList()">
 
-                Add to Save List
+            Add to Save List
 
           </button>
 

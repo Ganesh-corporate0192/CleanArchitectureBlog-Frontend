@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute ,Router} from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 
 import { Blog } from '../../models/blog';
 import { BlogService } from '../../services/blog.service';
@@ -14,9 +14,7 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 
 import { switchMap } from 'rxjs/operators';
-
-import { ChangeDetectorRef } from '@angular/core';
-import { MatSnackBar,MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-blog-list',
@@ -36,308 +34,297 @@ import { MatSnackBar,MatSnackBarModule } from '@angular/material/snack-bar';
 })
 export class BlogListComponent implements OnInit {
 
-  blogs: Blog[] = [];
-  originalBlogs: Blog[] = [];
-  loading: boolean = true;
+  // Signals
+  blogs = signal<Blog[]>([]);
+  originalBlogs = signal<Blog[]>([]);
+  loading = signal<boolean>(true);
 
-  drawerOpen = false;
-  selectedBlog: Blog | null = null;
-  originalEditingBlog: Blog | null = null;
+  drawerOpen = signal(false);
+  selectedBlog = signal<Blog | null>(null);
+  originalEditingBlog = signal<Blog | null>(null);
 
-  editedBlogs: Blog[] = [];
-
-  imageUrlError: string = '';
+  editedBlogs = signal<Blog[]>([]);
+  imageUrlError = signal('');
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private blogService: BlogService,
     private alert: AlertService,
-    private cdr: ChangeDetectorRef,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
 
-  this.blogs = this.route.snapshot.data['blogs'] ?? [];
+    const data = this.route.snapshot.data['blogs'] ?? [];
 
-  // store original copy for comparison
-  this.originalBlogs = JSON.parse(JSON.stringify(this.blogs));
+    this.blogs.set(data);
+    this.originalBlogs.set(JSON.parse(JSON.stringify(data)));
 
-  this.loading = false;
+    this.loading.set(false);
 
-}
+  }
 
-  /**
-   * Open sliding edit panel
-   */
   startEdit(blog: Blog): void {
 
-    this.selectedBlog = this.sanitizeBlog({ ...blog });
+    const cleaned = this.sanitizeBlog({ ...blog });
 
-    // store original copy
-  this.originalEditingBlog = this.sanitizeBlog({ ...blog });
+    this.selectedBlog.set(cleaned);
+    this.originalEditingBlog.set({ ...cleaned });
 
-    // reset validation when opening editor
-    this.imageUrlError = '';
+    this.imageUrlError.set('');
+    this.drawerOpen.set(true);
 
-    this.drawerOpen = true;
   }
 
-  // Sanitize blog data by trimming whitespace and handling null/undefined
   sanitizeBlog(blog: Blog): Blog {
 
-  return {
-    ...blog,
-    name: blog.name?.trim() ?? '',
-    description: blog.description?.trim() ?? '',
-    author: blog.author?.trim() ?? '',
-    imageUrl: blog.imageUrl?.trim() ?? ''
-  };
-
-}
-
-  /**
-   * Add edited blog to save list
-   */
-addToSaveList(): void {
-
-  if (!this.selectedBlog) return;
-
-  // sanitize before saving
-  const cleanedBlog = this.sanitizeBlog(this.selectedBlog);
-
-  if (!this.hasChanges()) {
-
-    this.snackBar.open(
-      "Nothing edited",
-      "Close",
-      { duration: 2500 }
-    );
-
-    return;
-  }
-
-  const index = this.editedBlogs.findIndex(b => b.id === cleanedBlog.id);
-
-  if (index === -1) {
-    this.editedBlogs.push({ ...cleanedBlog });
-  } else {
-    this.editedBlogs[index] = { ...cleanedBlog };
-  }
-
-  const blogIndex = this.blogs.findIndex(b => b.id === cleanedBlog.id);
-
-  if (blogIndex !== -1) {
-    this.blogs[blogIndex] = { ...cleanedBlog };
-  }
-
-  this.snackBar.open(
-    'Added to save list',
-    'Close',
-    { duration:2000 }
-  );
-
-  this.drawerOpen = false;
-
-}
-
-// ⭐ Check if specific field is edited compared to original
-isFieldEdited(blogId: number, field: keyof Blog): boolean {
-
-  const original = this.originalBlogs.find(b => b.id === blogId);
-  const current = this.blogs.find(b => b.id === blogId);
-
-  if (!original || !current) return false;
-
-  return original[field] !== current[field];
-
-}
-// ⭐ Check if any field has changes compared to original
-hasChanges(): boolean {
-
-  if (!this.selectedBlog || !this.originalEditingBlog) return false;
-
-  const normalize = (value: string | undefined | null) =>
-    (value ?? '').trim();
-
-  return (
-    normalize(this.selectedBlog.name) !== normalize(this.originalEditingBlog.name) ||
-    normalize(this.selectedBlog.description) !== normalize(this.originalEditingBlog.description) ||
-    normalize(this.selectedBlog.author) !== normalize(this.originalEditingBlog.author) ||
-    normalize(this.selectedBlog.imageUrl) !== normalize(this.originalEditingBlog.imageUrl)
-  );
-
-}
-
-cancelEdit(): void {
-
-  if (this.hasChanges()) {
-
-    const confirmClose = confirm(
-      "You have unsaved changes. Do you really want to cancel?"
-    );
-
-    if (!confirmClose) return;
+    return {
+      ...blog,
+      name: blog.name?.trim() ?? '',
+      description: blog.description?.trim() ?? '',
+      author: blog.author?.trim() ?? '',
+      imageUrl: blog.imageUrl?.trim() ?? ''
+    };
 
   }
 
-  this.drawerOpen = false;
-  this.selectedBlog = null;
-  this.originalEditingBlog = null;
+  addToSaveList(): void {
 
-}
+    const blog = this.selectedBlog();
+    if (!blog) return;
 
-  /**
-   * Save all edited blogs
-   */
-saveAll(): void {
+    const cleaned = this.sanitizeBlog(blog);
 
-  if (this.editedBlogs.length === 0) {
-    return;
-  }
+    if (!this.hasChanges()) {
 
-  this.loading = true;
-
-  this.blogService.updateMultipleBlogs(this.editedBlogs).subscribe({
-
-    next: () => {
-
-      this.snackBar.open(
-        'All changes saved successfully ✅',
-        'Close',
-        { duration: 3000 }
-      );
-
-      // Reload latest data from server
-      setTimeout(() => {
-        // Reset edited blogs
-      this.editedBlogs = [];
-
-      // Update original snapshot so highlight disappears
-      this.originalBlogs = JSON.parse(JSON.stringify(this.blogs));
-        this.loadBlogs();
-      });
-
-    },
-
-    error: () => {
-
-      this.loading = false;
-
-      this.snackBar.open(
-        'Failed to update blogs',
-        'Close',
-        { duration: 3000 }
-      );
+      this.snackBar.open("Nothing edited", "Close", { duration: 2500 });
+      return;
 
     }
 
-  });
+    this.editedBlogs.update(list => {
 
-}
+      const index = list.findIndex(b => b.id === cleaned.id);
 
-  /**
-   * Validate image URL format
-   */
-validateImageUrl(): void {
+      if (index === -1) return [...list, cleaned];
 
-  if (!this.selectedBlog?.imageUrl) {
-    this.imageUrlError = '';
-    return;
+      const newList = [...list];
+      newList[index] = cleaned;
+      return newList;
+
+    });
+
+    this.blogs.update(list => {
+
+      const index = list.findIndex(b => b.id === cleaned.id);
+      if (index === -1) return list;
+
+      const newList = [...list];
+      newList[index] = cleaned;
+
+      return newList;
+
+    });
+
+    this.snackBar.open('Added to save list', 'Close', { duration: 2000 });
+
+    this.drawerOpen.set(false);
+
   }
 
-  try {
-    new URL(this.selectedBlog.imageUrl);
-    this.imageUrlError = '';
-  } catch {
-    this.imageUrlError = "Invalid Image URL";
+  hasChanges(): boolean {
+
+    const edited = this.selectedBlog();
+    const original = this.originalEditingBlog();
+
+    if (!edited || !original) return false;
+
+    const normalize = (v: string | undefined | null) => (v ?? '').trim();
+
+    return (
+      normalize(edited.name) !== normalize(original.name) ||
+      normalize(edited.description) !== normalize(original.description) ||
+      normalize(edited.author) !== normalize(original.author) ||
+      normalize(edited.imageUrl) !== normalize(original.imageUrl)
+    );
+
   }
 
-}
+  cancelEdit(): void {
 
-  /**
-   * Handle broken image link
-   */
+    if (this.hasChanges()) {
+
+      const confirmClose = confirm(
+        "You have unsaved changes. Do you really want to cancel?"
+      );
+
+      if (!confirmClose) return;
+
+    }
+
+    this.drawerOpen.set(false);
+    this.selectedBlog.set(null);
+    this.originalEditingBlog.set(null);
+
+  }
+
+  isFieldEdited(blogId: number, field: keyof Blog): boolean {
+
+    const original = this.originalBlogs().find(b => b.id === blogId);
+    const current = this.blogs().find(b => b.id === blogId);
+
+    if (!original || !current) return false;
+
+    return original[field] !== current[field];
+
+  }
+
+  saveAll(): void {
+
+    const edited = this.editedBlogs();
+    if (edited.length === 0) return;
+
+    this.loading.set(true);
+
+    this.blogService.updateMultipleBlogs(edited).subscribe({
+
+      next: () => {
+
+        this.snackBar.open(
+          'All changes saved successfully ✅',
+          'Close',
+          { duration: 3000 }
+        );
+
+        this.editedBlogs.set([]);
+        this.originalBlogs.set(JSON.parse(JSON.stringify(this.blogs())));
+
+        this.loading.set(false);
+
+      },
+
+      error: () => {
+
+        this.loading.set(false);
+
+        this.snackBar.open(
+          'Failed to update blogs',
+          'Close',
+          { duration: 3000 }
+        );
+
+      }
+
+    });
+
+  }
+
+  validateImageUrl(): void {
+
+    const blog = this.selectedBlog();
+
+    if (!blog?.imageUrl) {
+      this.imageUrlError.set('');
+      return;
+    }
+
+    try {
+      new URL(blog.imageUrl);
+      this.imageUrlError.set('');
+    } catch {
+      this.imageUrlError.set("Invalid Image URL");
+    }
+
+  }
+
   onImageError(): void {
-    this.imageUrlError = "Invalid Image URL";
+    this.imageUrlError.set("Invalid Image URL");
   }
 
-  /**
-   * Reload blogs from API
-   */
   loadBlogs(): void {
 
-    this.loading = true;
+    this.loading.set(true);
 
     this.blogService.getAll().subscribe({
 
       next: (data) => {
-        this.blogs = data;
-        this.loading = false;
-        this.cdr.markForCheck();
+
+        this.blogs.set(data);
+        this.originalBlogs.set(JSON.parse(JSON.stringify(data)));
+        this.loading.set(false);
+
       },
 
       error: () => {
-        this.loading = false;
-        this.snackBar.open('Failed to load blogs. Please try again.', 'Close', {
-          duration: 3000
-        });
-        this.cdr.markForCheck();
+
+        this.loading.set(false);
+
+        this.snackBar.open(
+          'Failed to load blogs. Please try again.',
+          'Close',
+          { duration: 3000 }
+        );
+
       }
 
     });
+
   }
 
   delete(id: number): void {
 
-    if (!confirm('Are you sure you want to delete this blog?')) {
-      return;
-    }
+    if (!confirm('Are you sure you want to delete this blog?')) return;
 
-    this.loading = true;
+    this.loading.set(true);
 
     this.blogService.delete(id).pipe(
 
       switchMap(() => {
-        this.snackBar.open('Blog deleted successfully ✅', 'Close', {
-          duration: 3000
-        });
+
+        this.snackBar.open(
+          'Blog deleted successfully ✅',
+          'Close',
+          { duration: 3000 }
+        );
+
         return this.blogService.getAll();
+
       })
 
     ).subscribe({
 
-      next: (blogs) => {
-        this.blogs = blogs;
-        this.loading = false;
-        this.cdr.markForCheck();
+      next: blogs => {
+
+        this.blogs.set(blogs);
+        this.originalBlogs.set(JSON.parse(JSON.stringify(blogs)));
+        this.loading.set(false);
+
       },
 
-      error: (error) => {
-        this.loading = false;
-        const message = this.extractErrorMessage(error);
-        this.alert.error(message);
+      error: error => {
+
+        this.loading.set(false);
+        this.alert.error(this.extractErrorMessage(error));
+
       }
 
     });
+
   }
 
   private extractErrorMessage(error: any): string {
 
-    if (error?.error?.errors && Array.isArray(error.error.errors)) {
+    if (error?.error?.errors && Array.isArray(error.error.errors))
       return error.error.errors.join(', ');
-    }
 
-    if (error?.error?.errors && typeof error.error.errors === 'object') {
+    if (error?.error?.errors && typeof error.error.errors === 'object')
       return Object.values(error.error.errors).flat().join(', ');
-    }
 
-    if (error?.error?.message) {
+    if (error?.error?.message)
       return error.error.message;
-    }
 
     return 'Failed to delete blog. Please try again.';
+
   }
 
 }
