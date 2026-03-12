@@ -1,91 +1,266 @@
-<div class="blog-list-container">
+<mat-drawer-container class="drawer-container">
 
-  <!-- Header -->
-  <div class="header">
+  <!-- MAIN CONTENT -->
+  <mat-drawer-content>
 
-    <h2>Blog List</h2>
+    <div class="blog-list-container">
 
-    <button
-      mat-raised-button
-      color="primary"
-      routerLink="/create">
+      <!-- Header -->
+      <div class="header">
 
-      <mat-icon>add</mat-icon>
-      Create Blog
-
-    </button>
-
-  </div>
-
-
-  <!-- Loading Indicator -->
-<div *ngIf="loading" class="loader-container">
-  <kendo-loader type="infinite-spinner"></kendo-loader>
-</div>
-
- <!-- Blog Grid -->
-  <div class="blog-grid" *ngIf="!loading">
-
-    <kendo-card
-      class="blog-card"
-      *ngFor="let blog of blogs"
-    >
-
-      <!-- Blog Image -->
-      <img
-        *ngIf="blog.imageUrl"
-        [src]="blog.imageUrl"
-        alt="Blog image"
-        class="blog-image"
-      />
-
-      <!-- Blog Content -->
-      <kendo-card-body>
-
-        <h3 class="blog-title">
-          {{ blog.name }}
-        </h3>
-
-        <p class="description">
-          {{ blog.description }}
-        </p>
-
-        <p class="author">
-          <strong>Author:</strong> {{ blog.author }}
-        </p>
-
-      </kendo-card-body>
-
-
-      <!-- Action Buttons -->
-      <kendo-card-actions>
+        <h2>Blog List</h2>
 
         <button
-          kendoButton
-          themeColor="primary"
-          fillMode="outline"
-          [routerLink]="['/edit', blog.id]">
+          mat-raised-button
+          color="primary"
+          routerLink="/create">
 
-          <mat-icon>edit</mat-icon>
-          Edit
+          <mat-icon>add</mat-icon>
+          Create Blog
 
         </button>
 
-        <button
-          kendoButton
-          themeColor="error"
-          fillMode="outline"
-          (click)="delete(blog.id!)">
+      </div>
 
-          <mat-icon>delete</mat-icon>
-          Delete
+
+      <!-- Save All -->
+      <div *ngIf="editedBlogs.length > 0" style="margin:15px 0; text-align:right;">
+
+        <button
+          mat-raised-button
+          color="accent"
+          (click)="saveAll()">
+
+          Save All Changes
 
         </button>
 
-      </kendo-card-actions>
+      </div>
 
-    </kendo-card>
 
-  </div>
+      <!-- Loader -->
+      <div *ngIf="loading" class="loader-container">
+        <kendo-loader type="infinite-spinner"></kendo-loader>
+      </div>
 
-</div>
+
+      <!-- Blog Grid -->
+      <div class="blog-grid" *ngIf="!loading">
+
+        <kendo-card
+          class="blog-card"
+          *ngFor="let blog of blogs"
+          [class.edited-card]="editedBlogs.some(b => b.id === blog.id)">
+
+          <!-- Image -->
+          <img
+            *ngIf="blog.imageUrl"
+            [src]="blog.imageUrl"
+            alt="Blog image"
+            class="blog-image"
+            [class.edited-field]="isFieldEdited(blog.id!, 'imageUrl')"
+          />
+
+          <kendo-card-body>
+
+            <h3 class="blog-title"
+            [class.edited-field]="isFieldEdited(blog.id!, 'name')">
+>
+              {{ blog.name }}
+            </h3>
+
+            <p class="description"
+            [class.edited-field]="isFieldEdited(blog.id!, 'description')">
+              {{ blog.description }}
+            </p>
+
+            <p class="author"
+            [class.edited-field]="isFieldEdited(blog.id!, 'author')">
+              <strong>Author:</strong> {{ blog.author }}
+            </p>
+
+          </kendo-card-body>
+
+
+          <kendo-card-actions>
+
+            <!-- EDIT -->
+            <button
+              kendoButton
+              themeColor="primary"
+              fillMode="outline"
+              (click)="startEdit(blog)">
+
+              <mat-icon>edit</mat-icon>
+              Edit
+
+            </button>
+
+            <!-- DELETE -->
+            <button
+              kendoButton
+              themeColor="error"
+              fillMode="outline"
+              (click)="delete(blog.id!)">
+
+              <mat-icon>delete</mat-icon>
+              Delete
+
+            </button>
+
+          </kendo-card-actions>
+
+        </kendo-card>
+
+      </div>
+
+    </div>
+
+  </mat-drawer-content>
+
+
+  <!-- EDIT DRAWER -->
+  <mat-drawer
+    mode="over"
+    position="end"
+    [(opened)]="drawerOpen"
+    style="width:420px;padding:20px;">
+
+    <div *ngIf="selectedBlog">
+
+      <div style="display:flex;justify-content:space-between;align-items:center">
+
+        <h3>Edit Blog</h3>
+
+        <button mat-icon-button (click)="cancelEdit()">
+          <mat-icon>close</mat-icon>
+        </button>
+
+      </div>
+
+
+      <!-- FORM -->
+      <form #editForm="ngForm">
+
+        <!-- Title -->
+        <mat-form-field appearance="outline" style="width:100%">
+
+          <mat-label>Blog Title</mat-label>
+
+          <input
+            matInput
+            [(ngModel)]="selectedBlog.name"
+            name="name"
+            required
+            placeholder="Enter blog title"
+          />
+
+          <mat-error *ngIf="editForm.controls['name']?.invalid && editForm.controls['name']?.touched">
+            Title is required
+          </mat-error>
+
+        </mat-form-field>
+
+
+        <!-- Description -->
+        <mat-form-field appearance="outline" style="width:100%">
+
+          <mat-label>Description</mat-label>
+
+          <textarea
+            matInput
+            rows="4"
+            [(ngModel)]="selectedBlog.description"
+            name="description"
+            required
+            placeholder="Enter blog description"
+          ></textarea>
+
+          <mat-error *ngIf="editForm.controls['description']?.invalid && editForm.controls['description']?.touched">
+            Description is required
+          </mat-error>
+
+        </mat-form-field>
+
+
+        <!-- Author -->
+        <mat-form-field appearance="outline" style="width:100%">
+
+          <mat-label>Author</mat-label>
+
+          <input
+            matInput
+            [(ngModel)]="selectedBlog.author"
+            name="author"
+            required
+            placeholder="Author name"
+          />
+
+          <mat-error *ngIf="editForm.controls['author']?.invalid && editForm.controls['author']?.touched">
+            Author is required
+          </mat-error>
+
+        </mat-form-field>
+
+
+        <!-- Image URL -->
+        <mat-form-field appearance="outline" style="width:100%">
+
+          <mat-label>Image URL</mat-label>
+
+          <input
+            matInput
+            [(ngModel)]="selectedBlog.imageUrl"
+            name="imageUrl"
+            required
+            #imageUrl="ngModel"
+            placeholder="https://example.com/image.jpg"
+            (blur)="validateImageUrl()"
+            (input)="imageUrlError=''"
+          />
+
+          <!-- Required validation -->
+          <mat-error *ngIf="imageUrl.invalid && imageUrl.touched">
+            Image URL is required
+          </mat-error>
+
+        </mat-form-field>
+
+
+        <!-- Custom validation message -->
+        <div class="field-error" *ngIf="imageUrlError">
+          {{ imageUrlError }}
+        </div>
+
+
+        <!-- Image Preview -->
+        <img
+          *ngIf="selectedBlog.imageUrl && !imageUrlError"
+          [src]="selectedBlog.imageUrl"
+          (error)="onImageError()"
+          style="width:100%;margin-top:10px;border-radius:8px"
+        />
+
+
+        <!-- Add to Save List -->
+        <div style="margin-top:20px">
+
+          <button
+                mat-raised-button
+                color="primary"
+                [disabled]="editForm.invalid || imageUrlError || !hasChanges()"
+                (click)="addToSaveList()">
+
+                Add to Save List
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </mat-drawer>
+
+</mat-drawer-container>

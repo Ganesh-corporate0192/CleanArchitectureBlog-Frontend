@@ -44,3 +44,16 @@
   justify-content: center;
   margin-top: 40px;
 }
+
+.edited-card {
+  border: 2px solid #ff9800;
+  box-shadow: 0 0 10px rgba(255,152,0,0.4);
+}
+.edited-field {
+  background: #fff3cd;
+  border-left: 4px solid #ff9800;
+  padding-left: 6px;
+}
+.edited-card {
+  border: 2px solid #ff9800;
+}

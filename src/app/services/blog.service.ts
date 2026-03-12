@@ -28,6 +28,14 @@ export class BlogService {
     return this.http.put(`${this.baseUrl}/Update`, blog);
   }
 
+updateMultipleBlogs(blogs: Blog[]){
+  return this.http.put(
+    `${this.baseUrl}/UpdateMultiple`,
+    blogs
+  );
+}
+  
+
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/Delete/${id}`);
   }
