@@ -19,7 +19,7 @@
           required
         />
 
-        <mat-error *ngIf="createForm.controls['name']?.invalid">
+        <mat-error *ngIf="createForm.controls['name']?.invalid && createForm.controls['name']?.touched">
           Blog title is required
         </mat-error>
 
@@ -40,7 +40,7 @@
           required
         ></textarea>
 
-        <mat-error *ngIf="createForm.controls['description']?.invalid">
+        <mat-error *ngIf="createForm.controls['description']?.invalid && createForm.controls['description']?.touched">
           Description is required
         </mat-error>
 
@@ -60,7 +60,7 @@
           required
         />
 
-        <mat-error *ngIf="createForm.controls['author']?.invalid">
+        <mat-error *ngIf="createForm.controls['author']?.invalid && createForm.controls['author']?.touched">
           Author is required
         </mat-error>
 
@@ -76,21 +76,33 @@
           matInput
           [(ngModel)]="blog.imageUrl"
           name="imageUrl"
+          #imageUrl="ngModel"
           placeholder="https://example.com/image.jpg"
           required
+          (blur)="validateImageUrl()"
+          (input)="imageUrlError=''"
         />
 
-        <mat-error *ngIf="createForm.controls['imageUrl']?.invalid">
+        <mat-error *ngIf="imageUrl.invalid && imageUrl.touched">
           Image URL is required
         </mat-error>
 
       </mat-form-field>
 
 
-      <!-- Backend validation message -->
+      <!-- Invalid image error -->
       <div class="field-error" *ngIf="imageUrlError">
         {{ imageUrlError }}
       </div>
+
+
+      <!-- Image Preview -->
+      <img
+        *ngIf="blog.imageUrl && !imageUrlError"
+        [src]="blog.imageUrl"
+        (error)="onImageError()"
+        style="width:100%; margin:10px 0; border-radius:8px"
+      />
 
 
       <!-- Submit Button -->
@@ -98,7 +110,7 @@
         mat-raised-button
         color="primary"
         type="submit"
-        [disabled]="createForm.invalid || loading"
+        [disabled]="createForm.invalid || imageUrlError || loading"
       >
         {{ loading ? 'Creating...' : 'Create Blog' }}
       </button>
