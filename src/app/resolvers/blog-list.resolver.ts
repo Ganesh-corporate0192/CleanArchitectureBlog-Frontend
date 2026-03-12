@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BlogService } from '../services/blog.service';
-import { Blog } from '../models/blog';
+
 
 @Injectable({ providedIn: 'root' })
 export class BlogListResolver {
