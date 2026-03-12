@@ -16,8 +16,7 @@ import { PopupModule } from '@progress/kendo-angular-popup';
   imports: [
     CommonModule,
     RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
+    
     AlertComponent,
     MaterialModule,
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { BlogService } from '../../services/blog.service';
 import { Blog } from '../../models/blog';
 import { MaterialModule } from '../../material/material.module';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-blog-create',
@@ -16,6 +17,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 })
 export class BlogCreateComponent {
 
+  private destroyRef = inject(DestroyRef);
+
   blog: Blog = {
     id: 0,
     name: '',
@@ -24,7 +27,6 @@ export class BlogCreateComponent {
     imageUrl: ''
   };
 
-  // snapshot to detect edits
   originalBlog: Blog = { ...this.blog };
 
   loading = false;
@@ -66,9 +68,6 @@ export class BlogCreateComponent {
     this.imageUrlError = 'Invalid Image URL';
   }
 
-  /**
-   * Detect unsaved changes
-   */
   hasChanges(): boolean {
 
     const normalize = (v: string | undefined | null) =>
@@ -83,9 +82,6 @@ export class BlogCreateComponent {
 
   }
 
-  /**
-   * Cancel create
-   */
   cancel(): void {
 
     if (this.hasChanges()) {
@@ -102,9 +98,6 @@ export class BlogCreateComponent {
 
   }
 
-  /**
-   * Submit blog
-   */
   submit(): void {
 
     if (!this.hasChanges()) {
@@ -125,49 +118,49 @@ export class BlogCreateComponent {
 
     const cleanedBlog = this.sanitizeBlog(this.blog);
 
-    this.blogService.create(cleanedBlog).subscribe({
+    this.blogService.create(cleanedBlog)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
 
-      next: () => {
+        next: () => {
 
-        this.loading = false;
+          this.loading = false;
 
-        this.snackBar.open(
-          'Blog created successfully ✅',
-          'Close',
-          { duration: 3000 }
-        );
+          this.snackBar.open(
+            'Blog created successfully ✅',
+            'Close',
+            { duration: 3000 }
+          );
 
-        this.resetForm();
+          this.resetForm();
 
-        this.router.navigate(['/']);
+          // Navigate back - list already updated via signal
+          this.router.navigate(['/']);
 
-      },
+        },
 
-      error: (error) => {
+        error: (error) => {
 
-        this.loading = false;
+          this.loading = false;
 
-        this.imageUrlError = '';
+          this.imageUrlError = '';
 
-        const backendErrors = this.getBackendErrors(error);
+          const backendErrors = this.getBackendErrors(error);
 
-        const imageError = backendErrors.find(e =>
-          e.toLowerCase().includes('image')
-        );
+          const imageError = backendErrors.find(e =>
+            e.toLowerCase().includes('image')
+          );
 
-        if (imageError) {
-          this.imageUrlError = imageError;
+          if (imageError) {
+            this.imageUrlError = imageError;
+          }
+
         }
 
-      }
-
-    });
+      });
 
   }
 
-  /**
-   * Reset form
-   */
   resetForm(): void {
 
     this.blog = {
@@ -184,13 +177,11 @@ export class BlogCreateComponent {
 
   private getBackendErrors(error: any): string[] {
 
-    if (error?.error?.errors && Array.isArray(error.error.errors)) {
+    if (error?.error?.errors && Array.isArray(error.error.errors))
       return error.error.errors;
-    }
 
-    if (error?.error?.errors && typeof error.error.errors === 'object') {
+    if (error?.error?.errors && typeof error.error.errors === 'object')
       return Object.values(error.error.errors).flat() as string[];
-    }
 
     return ['Invalid input'];
 

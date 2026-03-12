@@ -13,8 +13,10 @@ import { LayoutModule } from '@progress/kendo-angular-layout';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 
-import { switchMap } from 'rxjs/operators';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef, inject } from '@angular/core';
 
 @Component({
   selector: 'app-blog-list',
@@ -45,6 +47,8 @@ export class BlogListComponent implements OnInit {
 
   editedBlogs = signal<Blog[]>([]);
   imageUrlError = signal('');
+
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private route: ActivatedRoute,
@@ -178,15 +182,16 @@ export class BlogListComponent implements OnInit {
     return original[field] !== current[field];
 
   }
+saveAll(): void {
 
-  saveAll(): void {
+  const edited = this.editedBlogs();
+  if (edited.length === 0) return;
 
-    const edited = this.editedBlogs();
-    if (edited.length === 0) return;
+  this.loading.set(true);
 
-    this.loading.set(true);
-
-    this.blogService.updateMultipleBlogs(edited).subscribe({
+  this.blogService.updateMultipleBlogs(edited)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
 
       next: () => {
 
@@ -197,9 +202,9 @@ export class BlogListComponent implements OnInit {
         );
 
         this.editedBlogs.set([]);
-        this.originalBlogs.set(JSON.parse(JSON.stringify(this.blogs())));
 
-        this.loading.set(false);
+        // Fetch latest blogs from server
+        this.loadBlogs();
 
       },
 
@@ -217,7 +222,7 @@ export class BlogListComponent implements OnInit {
 
     });
 
-  }
+}
 
   validateImageUrl(): void {
 
@@ -250,11 +255,13 @@ export class BlogListComponent implements OnInit {
   this.imageUrlError.set('');
 
 }
-  loadBlogs(): void {
+loadBlogs(): void {
 
-    this.loading.set(true);
+  this.loading.set(true);
 
-    this.blogService.getAll().subscribe({
+  this.blogService.getAll()
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
 
       next: (data) => {
 
@@ -278,7 +285,7 @@ export class BlogListComponent implements OnInit {
 
     });
 
-  }
+}
 
 delete(id: number): void {
 
@@ -286,38 +293,36 @@ delete(id: number): void {
 
   this.loading.set(true);
 
-  this.blogService.delete(id).subscribe({
+  this.blogService.delete(id)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
 
-    next: () => {
+      next: () => {
 
-      this.snackBar.open(
-        'Blog deleted successfully ✅',
-        'Close',
-        { duration: 3000 }
-      );
+        this.snackBar.open(
+          'Blog deleted successfully ✅',
+          'Close',
+          { duration: 3000 }
+        );
 
-      // Remove blog locally instead of calling API again
-      this.blogs.update(list => list.filter(blog => blog.id !== id));
+        this.blogs.update(list => list.filter(blog => blog.id !== id));
+        this.originalBlogs.update(list => list.filter(blog => blog.id !== id));
+        this.editedBlogs.update(list => list.filter(blog => blog.id !== id));
 
-      this.originalBlogs.update(list => list.filter(blog => blog.id !== id));
+        this.loading.set(false);
 
-      this.editedBlogs.update(list => list.filter(blog => blog.id !== id));
+      },
 
-      this.loading.set(false);
+      error: (error) => {
 
-    },
+        this.loading.set(false);
 
-    error: (error) => {
+        const message = this.extractErrorMessage(error);
+        this.alert.error(message);
 
-      this.loading.set(false);
+      }
 
-      const message = this.extractErrorMessage(error);
-
-      this.alert.error(message);
-
-    }
-
-  });
+    });
 
 }
 

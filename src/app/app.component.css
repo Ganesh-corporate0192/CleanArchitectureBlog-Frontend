@@ -1,28 +1,45 @@
-.app-container {
+.header-toolbar {
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.app-content {
-  flex: 1;
-  padding: 20px;
-}
-
-.spacer {
-  flex: 1 1 auto;
+  justify-content: center;   /* centers content horizontally */
+  align-items: center;       /* centers vertically */
+  height: 70px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Optional gradient effect */
+.header-toolbar {
+  background: linear-gradient(90deg, #3f51b5, #5c6bc0);
+  color: white;
 }
 
 .footer {
+  display: flex;
   justify-content: center;
+  align-items: center;
+
+  height: 60px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+
+  background: linear-gradient(90deg, #7b1fa2, #9c27b0);
+  color: white;
+
+  box-shadow: 0 -3px 8px rgba(0,0,0,0.2);
 }
-.header-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+
+.app-content {
+  padding-bottom: 70px;
 }
