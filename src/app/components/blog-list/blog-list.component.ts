@@ -241,6 +241,15 @@ export class BlogListComponent implements OnInit {
     this.imageUrlError.set("Invalid Image URL");
   }
 
+  onDrawerClosed(): void {
+
+  // reset editor state when drawer closes
+  this.drawerOpen.set(false);
+  this.selectedBlog.set(null);
+  this.originalEditingBlog.set(null);
+  this.imageUrlError.set('');
+
+}
   loadBlogs(): void {
 
     this.loading.set(true);

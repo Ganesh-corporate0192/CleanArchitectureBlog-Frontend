@@ -132,6 +132,7 @@
     mode="over"
     position="end"
     [opened]="drawerOpen()"
+    (closedStart)="onDrawerClosed()"
     style="width:420px;padding:20px;">
 
     <div *ngIf="selectedBlog() as selectedBlog">
