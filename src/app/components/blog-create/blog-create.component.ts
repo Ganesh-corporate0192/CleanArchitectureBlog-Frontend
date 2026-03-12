@@ -24,6 +24,9 @@ export class BlogCreateComponent {
     imageUrl: ''
   };
 
+  // snapshot to detect edits
+  originalBlog: Blog = { ...this.blog };
+
   loading = false;
   imageUrlError = '';
 
@@ -33,9 +36,6 @@ export class BlogCreateComponent {
     private snackBar: MatSnackBar
   ) {}
 
-  /**
-   * Trim all values before sending to backend
-   */
   sanitizeBlog(blog: Blog): Blog {
     return {
       ...blog,
@@ -46,9 +46,6 @@ export class BlogCreateComponent {
     };
   }
 
-  /**
-   * Validate URL format
-   */
   validateImageUrl(): void {
 
     if (!this.blog.imageUrl) {
@@ -65,11 +62,44 @@ export class BlogCreateComponent {
 
   }
 
-  /**
-   * Detect broken images
-   */
   onImageError(): void {
     this.imageUrlError = 'Invalid Image URL';
+  }
+
+  /**
+   * Detect unsaved changes
+   */
+  hasChanges(): boolean {
+
+    const normalize = (v: string | undefined | null) =>
+      (v ?? '').trim();
+
+    return (
+      normalize(this.blog.name) !== normalize(this.originalBlog.name) ||
+      normalize(this.blog.description) !== normalize(this.originalBlog.description) ||
+      normalize(this.blog.author) !== normalize(this.originalBlog.author) ||
+      normalize(this.blog.imageUrl) !== normalize(this.originalBlog.imageUrl)
+    );
+
+  }
+
+  /**
+   * Cancel create
+   */
+  cancel(): void {
+
+    if (this.hasChanges()) {
+
+      const confirmCancel = confirm(
+        'You have unsaved changes. Do you want to cancel creating this blog?'
+      );
+
+      if (!confirmCancel) return;
+
+    }
+
+    this.router.navigate(['/']);
+
   }
 
   /**
@@ -77,9 +107,19 @@ export class BlogCreateComponent {
    */
   submit(): void {
 
-    if (this.imageUrlError) {
+    if (!this.hasChanges()) {
+
+      this.snackBar.open(
+        'Nothing to create',
+        'Close',
+        { duration: 2500 }
+      );
+
       return;
+
     }
+
+    if (this.imageUrlError) return;
 
     this.loading = true;
 
@@ -96,6 +136,8 @@ export class BlogCreateComponent {
           'Close',
           { duration: 3000 }
         );
+
+        this.resetForm();
 
         this.router.navigate(['/']);
 
@@ -124,8 +166,22 @@ export class BlogCreateComponent {
   }
 
   /**
-   * Extract backend validation errors
+   * Reset form
    */
+  resetForm(): void {
+
+    this.blog = {
+      id: 0,
+      name: '',
+      description: '',
+      author: '',
+      imageUrl: ''
+    };
+
+    this.originalBlog = { ...this.blog };
+
+  }
+
   private getBackendErrors(error: any): string[] {
 
     if (error?.error?.errors && Array.isArray(error.error.errors)) {

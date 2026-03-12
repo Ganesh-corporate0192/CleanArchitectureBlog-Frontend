@@ -18,3 +18,12 @@
   color: red;
   margin-bottom: 10px;
 }
+.button-group{
+  display:flex;
+  gap:12px;
+  margin-top:20px;
+}
+
+.full-width{
+  width:100%;
+}

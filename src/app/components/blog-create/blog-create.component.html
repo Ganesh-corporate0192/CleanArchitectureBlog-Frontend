@@ -90,7 +90,7 @@
       </mat-form-field>
 
 
-      <!-- Invalid image error -->
+      <!-- Custom validation message -->
       <div class="field-error" *ngIf="imageUrlError">
         {{ imageUrlError }}
       </div>
@@ -105,15 +105,28 @@
       />
 
 
-      <!-- Submit Button -->
-      <button
-        mat-raised-button
-        color="primary"
-        type="submit"
-        [disabled]="createForm.invalid || imageUrlError || loading"
-      >
-        {{ loading ? 'Creating...' : 'Create Blog' }}
-      </button>
+      <!-- Action Buttons -->
+      <div class="button-group">
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="createForm.invalid || imageUrlError || loading"
+        >
+          {{ loading ? 'Creating...' : 'Create Blog' }}
+        </button>
+
+        <button
+          mat-stroked-button
+          color="warn"
+          type="button"
+          (click)="cancel()"
+        >
+          Cancel
+        </button>
+
+      </div>
 
     </form>
 
