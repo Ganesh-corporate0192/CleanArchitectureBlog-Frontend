@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 
@@ -48,6 +48,8 @@ export class BlogListComponent implements OnInit {
   editedBlogs = signal<Blog[]>([]);
   imageUrlError = signal('');
 
+  searchText = signal('');
+
   private destroyRef = inject(DestroyRef);
 
   constructor(
@@ -68,6 +70,15 @@ export class BlogListComponent implements OnInit {
 
   }
 
+  filteredBlogs = computed(() => {
+  const search = this.searchText().toLowerCase().trim();
+
+  if (!search) return this.blogs();
+
+  return this.blogs().filter(blog =>
+    blog.name.toLowerCase().includes(search)
+  );
+});
   startEdit(blog: Blog): void {
 
     const cleaned = this.sanitizeBlog({ ...blog });

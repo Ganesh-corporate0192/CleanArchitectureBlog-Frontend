@@ -7,8 +7,19 @@
 
       <!-- Header -->
       <div class="header">
+        <mat-form-field appearance="outline" style="width:300px; margin-top:10px;">
+          <mat-label>Search Blog</mat-label>
 
-        <h2>Blog List</h2>
+          <input
+            matInput
+            placeholder="Search by name..."
+            (input)="searchText.set($any($event.target).value)"
+          />
+
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <h2 *ngIf="!loading() && filteredBlogs().length > 0">Blog List</h2>
 
         <button
           mat-raised-button
@@ -43,14 +54,32 @@
         <kendo-loader type="infinite-spinner"></kendo-loader>
       </div>
 
+      <div
+  *ngIf="!loading() && filteredBlogs().length === 0"
+  class="no-data-container"
+>
+
+  <mat-card class="no-data-card">
+
+    <mat-icon class="no-data-icon">search_off</mat-icon>
+
+    <h2>No Blogs Found</h2>
+
+    <p>Try adjusting your search or create a new blog.</p>
+
+  </mat-card>
+
+</div>
 
       <!-- Blog Grid -->
-      <div class="blog-grid" *ngIf="!loading()">
+      <div class="blog-grid" *ngIf="!loading()&& filteredBlogs().length > 0">
+
 
         <kendo-card
           class="blog-card"
-          *ngFor="let blog of blogs()"
+          *ngFor="let blog of filteredBlogs()"
           [class.edited-card]="editedBlogs().some(b => b.id === blog.id)">
+          
 
           <!-- Image -->
           <img
@@ -86,6 +115,8 @@
               <strong>Author:</strong> {{ blog.author }}
 
             </p>
+
+            
 
           </kendo-card-body>
 
