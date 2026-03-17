@@ -35,18 +35,26 @@
 
 
       <!-- Save All -->
-      <div *ngIf="editedBlogs().length > 0" style="margin:15px 0; text-align:right;">
+      <!-- Save + Delete Info -->
+<div *ngIf="editedBlogs().length > 0 || deletedBlogIds().length > 0"
+     style="margin:15px 0; display:flex; justify-content:space-between; align-items:center;">
 
-        <button
-          mat-raised-button
-          color="accent"
-          (click)="saveAll()">
+  <!-- LEFT: Delete Info -->
+  <div *ngIf="deletedBlogIds().length > 0" style="color:red;">
+    {{ deletedBlogIds().length }} blog(s) marked for deletion 🗑️
+  </div>
 
-          Save All Changes
+  <!-- RIGHT: Save Button -->
+  <button
+    mat-raised-button
+    color="accent"
+    (click)="saveAll()">
 
-        </button>
+    Save All Changes
 
-      </div>
+  </button>
+
+</div>
 
 
       <!-- Loader -->
@@ -80,7 +88,7 @@
           *ngFor="let blog of filteredBlogs()"
           [class.edited-card]="editedBlogs().some(b => b.id === blog.id)">
           
-
+          
           <!-- Image -->
           <img
             *ngIf="blog.imageUrl"

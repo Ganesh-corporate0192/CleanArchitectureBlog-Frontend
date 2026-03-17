@@ -49,7 +49,7 @@ export class BlogListComponent implements OnInit {
   imageUrlError = signal('');
 
   searchText = signal('');
-
+  deletedBlogIds = signal<number[]>([]);
   private destroyRef = inject(DestroyRef);
 
   constructor(
@@ -193,43 +193,67 @@ export class BlogListComponent implements OnInit {
     return original[field] !== current[field];
 
   }
+
+private onSaveSuccess(): void {
+
+  this.snackBar.open(
+    'Changes saved successfully ✅',
+    'Close',
+    { duration: 3000 }
+  );
+
+  this.editedBlogs.set([]);
+  this.deletedBlogIds.set([]);
+
+  this.loadBlogs();
+}
+
+private onSaveError(): void {
+
+  this.loading.set(false);
+
+  this.snackBar.open(
+    'Failed to save changes ❌',
+    'Close',
+    { duration: 3000 }
+  );
+
+}
 saveAll(): void {
 
   const edited = this.editedBlogs();
-  if (edited.length === 0) return;
+  const deleted = this.deletedBlogIds();
+
+  if (edited.length === 0 && deleted.length === 0) return;
 
   this.loading.set(true);
 
+  // Step 1: Update blogs
   this.blogService.updateMultipleBlogs(edited)
     .pipe(takeUntilDestroyed(this.destroyRef))
     .subscribe({
 
       next: () => {
 
-        this.snackBar.open(
-          'All changes saved successfully ✅',
-          'Close',
-          { duration: 3000 }
-        );
+        // Step 2: Delete blogs ONLY if exists
+        if (deleted.length > 0) {
 
-        this.editedBlogs.set([]);
+          this.blogService.deleteMultiple(deleted)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
 
-        // Fetch latest blogs from server
-        this.loadBlogs();
+              next: () => this.onSaveSuccess(),
+              error: () => this.onSaveError()
+
+            });
+
+        } else {
+          this.onSaveSuccess();
+        }
 
       },
 
-      error: () => {
-
-        this.loading.set(false);
-
-        this.snackBar.open(
-          'Failed to update blogs',
-          'Close',
-          { duration: 3000 }
-        );
-
-      }
+      error: () => this.onSaveError()
 
     });
 
@@ -300,40 +324,22 @@ loadBlogs(): void {
 
 delete(id: number): void {
 
-  if (!confirm('Are you sure you want to delete this blog?')) return;
+  if (!confirm('Add this blog to delete list?')) return;
 
-  this.loading.set(true);
+  // Add to delete queue
+  this.deletedBlogIds.update(ids => {
+    if (ids.includes(id)) return ids;
+    return [...ids, id];
+  });
 
-  this.blogService.delete(id)
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe({
+  // Remove from UI immediately (optional UX)
+  this.blogs.update(list => list.filter(blog => blog.id !== id));
 
-      next: () => {
-
-        this.snackBar.open(
-          'Blog deleted successfully ✅',
-          'Close',
-          { duration: 3000 }
-        );
-
-        this.blogs.update(list => list.filter(blog => blog.id !== id));
-        this.originalBlogs.update(list => list.filter(blog => blog.id !== id));
-        this.editedBlogs.update(list => list.filter(blog => blog.id !== id));
-
-        this.loading.set(false);
-
-      },
-
-      error: (error) => {
-
-        this.loading.set(false);
-
-        const message = this.extractErrorMessage(error);
-        this.alert.error(message);
-
-      }
-
-    });
+  this.snackBar.open(
+    'Added to delete list 🗑️ (Save to confirm)',
+    'Close',
+    { duration: 2500 }
+  );
 
 }
 

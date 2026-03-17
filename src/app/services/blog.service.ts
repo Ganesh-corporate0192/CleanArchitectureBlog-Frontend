@@ -83,4 +83,16 @@ export class BlogService {
       })
     );
   }
+
+
+  deleteMultiple(ids: number[]) {
+  return this.http.post(`${this.baseUrl}/DeleteMultiple`, ids).pipe(
+    tap(() => {
+      // update local state like your other methods
+      this.blogs.update(list =>
+        list.filter(blog => !ids.includes(blog.id!))
+      );
+    })
+  );
+}
 }
