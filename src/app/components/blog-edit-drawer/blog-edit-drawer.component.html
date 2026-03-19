@@ -1,0 +1,121 @@
+<div *ngIf="blog as selectedBlog">
+
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h3>Edit Blog</h3>
+
+    <button mat-icon-button (click)="cancel.emit()">
+      <mat-icon>close</mat-icon>
+    </button>
+
+  </div>
+
+  <form #editForm="ngForm">
+
+    <!-- TITLE -->
+    <mat-form-field appearance="outline" style="width:100%">
+      <mat-label>Blog Title</mat-label>
+
+      <input
+        matInput
+        [(ngModel)]="selectedBlog.name"
+        name="name"
+        required
+        #name="ngModel"
+        placeholder="Enter blog title"
+      />
+
+      <mat-error *ngIf="name.invalid && name.touched">
+        Title is required
+      </mat-error>
+
+    </mat-form-field>
+
+    <!-- DESCRIPTION -->
+    <mat-form-field appearance="outline" style="width:100%">
+      <mat-label>Description</mat-label>
+
+      <textarea
+        matInput
+        rows="4"
+        [(ngModel)]="selectedBlog.description"
+        name="description"
+        required
+        #description="ngModel"
+      ></textarea>
+
+      <mat-error *ngIf="description.invalid && description.touched">
+        Description is required
+      </mat-error>
+
+    </mat-form-field>
+
+    <!-- AUTHOR -->
+    <mat-form-field appearance="outline" style="width:100%">
+      <mat-label>Author</mat-label>
+
+      <input
+        matInput
+        [(ngModel)]="selectedBlog.author"
+        name="author"
+        required
+        #author="ngModel"
+      />
+
+      <mat-error *ngIf="author.invalid && author.touched">
+        Author is required
+      </mat-error>
+
+    </mat-form-field>
+
+    <!-- IMAGE URL -->
+    <mat-form-field appearance="outline" style="width:100%">
+      <mat-label>Image URL</mat-label>
+
+      <input
+        matInput
+        [(ngModel)]="selectedBlog.imageUrl"
+        name="imageUrl"
+        required
+        #imageUrl="ngModel"
+        placeholder="https://example.com/image.jpg"
+        (blur)="validate.emit()"
+        (input)="validate.emit()"
+      />
+
+      <mat-error *ngIf="imageUrl.invalid && imageUrl.touched">
+        Image URL is required
+      </mat-error>
+
+    </mat-form-field>
+
+    <!-- CUSTOM ERROR -->
+    <div class="field-error" *ngIf="imageUrlError">
+      {{ imageUrlError }}
+    </div>
+
+    <!-- PREVIEW -->
+    <img
+      *ngIf="selectedBlog.imageUrl && !imageUrlError"
+      [src]="selectedBlog.imageUrl"
+      (error)="imageError.emit()"
+      style="width:100%;margin-top:10px;border-radius:8px"
+    />
+
+    <!-- BUTTON -->
+    <div style="margin-top:20px">
+
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="editForm.invalid || imageUrlError || !hasChanges"
+        (click)="save.emit()">
+
+        Add to Save List
+
+      </button>
+
+    </div>
+
+  </form>
+
+</div>
