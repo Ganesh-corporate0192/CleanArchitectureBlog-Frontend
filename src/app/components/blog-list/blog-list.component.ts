@@ -1,6 +1,7 @@
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 import { Blog } from '../../models/blog';
 import { BlogService } from '../../services/blog.service';
@@ -8,7 +9,7 @@ import { AlertService } from '../../services/alert.service';
 import { BlogEditDrawerComponent } from '../blog-edit-drawer/blog-edit-drawer.component';
 
 import { MaterialModule } from '../../material/material.module';
-import { FormsModule } from '@angular/forms';
+import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
 
 import { LayoutModule } from '@progress/kendo-angular-layout';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -31,7 +32,8 @@ import { DestroyRef, inject } from '@angular/core';
     ButtonsModule,
     IndicatorsModule,
     FormsModule,
-    BlogEditDrawerComponent // ✅ IMPORTANT
+    BlogEditDrawerComponent,
+    MatPaginatorModule    
   ],
   templateUrl: './blog-list.component.html',
   styleUrls: ['./blog-list.component.css']
@@ -53,6 +55,11 @@ export class BlogListComponent implements OnInit {
 
   searchText = signal('');
   deletedBlogIds = signal<number[]>([]);
+
+  pageSize = signal(6);
+pageIndex = signal(0);
+pageSizeOptions = [6, 9, 12, 18];
+
   private destroyRef = inject(DestroyRef);
 
   constructor(
@@ -68,18 +75,37 @@ export class BlogListComponent implements OnInit {
     this.blogs.set(data);
     this.originalBlogs.set(JSON.parse(JSON.stringify(data)));
     this.loading.set(false);
+    this.resetPagination();
   }
 
   filteredBlogs = computed(() => {
     const search = this.searchText().toLowerCase().trim();
 
-    if (!search) return this.blogs();
+    if (!search) return this.blogs();    
 
     return this.blogs().filter(blog =>
       blog.name.toLowerCase().includes(search)
     );
   });
+paginatedBlogs = computed(() => {
+  const start = this.pageIndex() * this.pageSize();
+  const end = start + this.pageSize();
+  return this.filteredBlogs().slice(start, end);
+});
 
+onPageChange(event: PageEvent): void {
+  this.pageIndex.set(event.pageIndex);
+  this.pageSize.set(event.pageSize);
+}
+
+resetPagination(): void {
+  this.pageIndex.set(0);
+}
+
+onSearchChange(value: string): void {
+  this.searchText.set(value);
+  this.resetPagination();
+}
   createNewBlog(): void {
   const newBlog: Blog = {
     id: 0,
@@ -122,7 +148,7 @@ export class BlogListComponent implements OnInit {
   };
 }
 
-private isSameBlog(a: Blog, b: Blog): boolean {
+isSameBlog(a: Blog, b: Blog): boolean {
   if ((a.id ?? 0) > 0 && (b.id ?? 0) > 0) {
     return a.id === b.id;
   }
@@ -180,6 +206,7 @@ addToSaveList(): void {
   this.snackBar.open('Added to save list', 'Close', { duration: 2000 });
 
   this.onDrawerClosed();
+  this.resetPagination();
 }
   hasChanges(): boolean {
     const edited = this.selectedBlog();
@@ -303,6 +330,7 @@ saveAll(): void {
           this.snackBar.open('Failed to load blogs', 'Close', { duration: 3000 });
         }
       });
+      this.resetPagination();
   }
 
   delete(blog: Blog): void {
@@ -326,7 +354,7 @@ saveAll(): void {
       'Close',
       { duration: 2500 }
     );
-
+    this.resetPagination();
     return;
   }
 
