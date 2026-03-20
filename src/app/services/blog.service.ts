@@ -71,7 +71,9 @@ export class BlogService {
       })
     );
   }
-
+upsertMultipleBlogs(blogs: any[]): Observable<any> {
+  return this.http.post<any>(`${this.baseUrl}/UpsertMultiple`, blogs);
+}
   /**
    * Delete blog
    * Removes blog locally instead of calling getAll again

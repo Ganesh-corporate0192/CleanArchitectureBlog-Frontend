@@ -49,6 +49,8 @@ export class BlogListComponent implements OnInit {
   editedBlogs = signal<Blog[]>([]);
   imageUrlError = signal('');
 
+  isCreateMode = signal(false);
+
   searchText = signal('');
   deletedBlogIds = signal<number[]>([]);
   private destroyRef = inject(DestroyRef);
@@ -78,6 +80,25 @@ export class BlogListComponent implements OnInit {
     );
   });
 
+  createNewBlog(): void {
+  const newBlog: Blog = {
+    id: 0,
+    clientId: crypto.randomUUID(),
+    name: '',
+    description: '',
+    author: '',
+    imageUrl: ''
+  };
+
+  const cleaned = this.sanitizeBlog({ ...newBlog });
+
+  this.selectedBlog.set(cleaned);
+  this.originalEditingBlog.set({ ...cleaned });
+  this.imageUrlError.set('');
+  this.drawerOpen.set(true);
+  this.isCreateMode.set(true);
+}
+
   // 🔥 EDIT START
   startEdit(blog: Blog): void {
     const cleaned = this.sanitizeBlog({ ...blog });
@@ -90,55 +111,76 @@ export class BlogListComponent implements OnInit {
   }
 
   sanitizeBlog(blog: Blog): Blog {
-    return {
-      ...blog,
-      name: blog.name?.trim() ?? '',
-      description: blog.description?.trim() ?? '',
-      author: blog.author?.trim() ?? '',
-      imageUrl: blog.imageUrl?.trim() ?? ''
-    };
+  return {
+    ...blog,
+    clientId: blog.clientId,
+    id: blog.id ?? 0,
+    name: blog.name?.trim() ?? '',
+    description: blog.description?.trim() ?? '',
+    author: blog.author?.trim() ?? '',
+    imageUrl: blog.imageUrl?.trim() ?? ''
+  };
+}
+
+private isSameBlog(a: Blog, b: Blog): boolean {
+  if ((a.id ?? 0) > 0 && (b.id ?? 0) > 0) {
+    return a.id === b.id;
   }
+
+  return !!a.clientId && a.clientId === b.clientId;
+}
 
   // 🔥 CALLED FROM CHILD
   addToSaveListFromDrawer(): void {
     this.addToSaveList();
   }
 
-  addToSaveList(): void {
-    const blog = this.selectedBlog();
-    if (!blog) return;
+addToSaveList(): void {
+  const blog = this.selectedBlog();
+  if (!blog) return;
 
-    const cleaned = this.sanitizeBlog(blog);
+  const cleaned = this.sanitizeBlog(blog);
 
-    if (!this.hasChanges()) {
-      this.snackBar.open("Nothing edited", "Close", { duration: 2500 });
-      return;
-    }
-
-    this.editedBlogs.update(list => {
-      const index = list.findIndex(b => b.id === cleaned.id);
-
-      if (index === -1) return [...list, cleaned];
-
-      const newList = [...list];
-      newList[index] = cleaned;
-      return newList;
-    });
-
-    this.blogs.update(list => {
-      const index = list.findIndex(b => b.id === cleaned.id);
-      if (index === -1) return list;
-
-      const newList = [...list];
-      newList[index] = cleaned;
-      return newList;
-    });
-
-    this.snackBar.open('Added to save list', 'Close', { duration: 2000 });
-
-    this.drawerOpen.set(false);
+  if (!this.hasChanges()) {
+    this.snackBar.open('Nothing edited', 'Close', { duration: 2500 });
+    return;
   }
 
+  if (this.isCreateMode()) {
+    this.blogs.update(list => [{ ...cleaned }, ...list]);
+
+    this.editedBlogs.update(list => [{ ...cleaned }, ...list]);
+
+    this.snackBar.open('New blog added to save list', 'Close', { duration: 2000 });
+
+    this.isCreateMode.set(false);
+    this.onDrawerClosed();
+    return;
+  }
+
+  this.editedBlogs.update(list => {
+    const index = list.findIndex(b => this.isSameBlog(b, cleaned));
+
+    if (index === -1) return [...list, cleaned];
+
+    const newList = [...list];
+    newList[index] = cleaned;
+    return newList;
+  });
+
+  this.blogs.update(list => {
+    const index = list.findIndex(b => this.isSameBlog(b, cleaned));
+    if (index === -1) return list;
+
+    const newList = [...list];
+    newList[index] = cleaned;
+    return newList;
+  });
+
+  this.snackBar.open('Added to save list', 'Close', { duration: 2000 });
+
+  this.onDrawerClosed();
+}
   hasChanges(): boolean {
     const edited = this.selectedBlog();
     const original = this.originalEditingBlog();
@@ -175,32 +217,63 @@ export class BlogListComponent implements OnInit {
     return original[field] !== current[field];
   }
 
-  saveAll(): void {
-    const edited = this.editedBlogs();
-    const deleted = this.deletedBlogIds();
+saveAll(): void {
+  const edited = this.editedBlogs();
+  const deleted = this.deletedBlogIds();
 
-    if (edited.length === 0 && deleted.length === 0) return;
+  if (edited.length === 0 && deleted.length === 0) {
+    return;
+  }
 
-    this.loading.set(true);
+  this.loading.set(true);
 
-    this.blogService.updateMultipleBlogs(edited)
+  const payload = edited.map(blog => ({
+    id: blog.id ?? 0,
+    name: blog.name,
+    description: blog.description,
+    author: blog.author,
+    imageUrl: blog.imageUrl
+  }));
+
+  // ✅ CASE 1: Only delete
+  if (payload.length === 0 && deleted.length > 0) {
+    this.blogService.deleteMultiple(deleted)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          if (deleted.length > 0) {
-            this.blogService.deleteMultiple(deleted)
-              .pipe(takeUntilDestroyed(this.destroyRef))
-              .subscribe({
-                next: () => this.onSaveSuccess(),
-                error: () => this.onSaveError()
-              });
-          } else {
-            this.onSaveSuccess();
-          }
-        },
+        next: () => this.onSaveSuccess(),
         error: () => this.onSaveError()
       });
+
+    return;
   }
+
+  // ✅ CASE 2: Only upsert
+  if (payload.length > 0 && deleted.length === 0) {
+    this.blogService.upsertMultipleBlogs(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.onSaveSuccess(),
+        error: () => this.onSaveError()
+      });
+
+    return;
+  }
+
+  // ✅ CASE 3: Both upsert + delete
+  this.blogService.upsertMultipleBlogs(payload)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: () => {
+        this.blogService.deleteMultiple(deleted)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => this.onSaveSuccess(),
+            error: () => this.onSaveError()
+          });
+      },
+      error: () => this.onSaveError()
+    });
+}
 
   private onSaveSuccess(): void {
     this.snackBar.open('Changes saved successfully ✅', 'Close', { duration: 3000 });
@@ -232,15 +305,47 @@ export class BlogListComponent implements OnInit {
       });
   }
 
-  delete(id: number): void {
-    if (!confirm('Add this blog to delete list?')) return;
+  delete(blog: Blog): void {
+  if (!confirm('Add this blog to delete list?')) return;
 
-    this.deletedBlogIds.update(ids =>
-      ids.includes(id) ? ids : [...ids, id]
+  const isUnsavedNewBlog = (blog.id ?? 0) === 0;
+
+  // ✅ If blog is only local (not saved in DB yet),
+  // remove it from UI + edited queue only.
+  if (isUnsavedNewBlog) {
+    this.blogs.update(list =>
+      list.filter(item => !this.isSameBlog(item, blog))
     );
 
-    this.blogs.update(list => list.filter(b => b.id !== id));
+    this.editedBlogs.update(list =>
+      list.filter(item => !this.isSameBlog(item, blog))
+    );
+
+    this.snackBar.open(
+      'Unsaved blog removed',
+      'Close',
+      { duration: 2500 }
+    );
+
+    return;
   }
+
+  // ✅ Existing saved blog → add to delete queue
+  this.deletedBlogIds.update(ids => {
+    if (ids.includes(blog.id!)) return ids;
+    return [...ids, blog.id!];
+  });
+
+  this.blogs.update(list =>
+    list.filter(item => item.id !== blog.id)
+  );
+
+  this.snackBar.open(
+    'Added to delete list 🗑️ (Save to confirm)',
+    'Close',
+    { duration: 2500 }
+  );
+}
 
   onDrawerClosed(): void {
 

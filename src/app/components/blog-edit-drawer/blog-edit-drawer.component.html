@@ -1,7 +1,7 @@
 <div *ngIf="blog as selectedBlog">
 
   <div style="display:flex;justify-content:space-between;align-items:center">
-    <h3>Edit Blog</h3>
+    <h3>{{ blog.id ? 'Edit Blog' : 'Create Blog' }}</h3>
 
     <button mat-icon-button (click)="cancel.emit()">
       <mat-icon>close</mat-icon>
