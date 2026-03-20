@@ -134,6 +134,7 @@ onSearchChange(value: string): void {
 
     this.imageUrlError.set('');
     this.drawerOpen.set(true);
+    document.body.style.overflow = 'hidden';
   }
 
   sanitizeBlog(blog: Blog): Blog {
@@ -382,6 +383,7 @@ saveAll(): void {
   this.selectedBlog.set(null);
   this.originalEditingBlog.set(null);
   this.imageUrlError.set('');
+  document.body.style.overflow = '';
 
 }
   validateImageUrl(): void {

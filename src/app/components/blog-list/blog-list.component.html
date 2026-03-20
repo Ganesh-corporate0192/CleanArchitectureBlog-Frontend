@@ -161,16 +161,17 @@
     (closedStart)="onDrawerClosed()"
     style="width:420px;padding:20px;">
 
-    <app-blog-edit-drawer
-      [blog]="selectedBlog()"
-      [imageUrlError]="imageUrlError()"
-      [hasChanges]="hasChanges()"
-      (save)="addToSaveListFromDrawer()"
-      (cancel)="cancelEdit()"
-      (validate)="validateImageUrl()"
-      (imageError)="onImageError()">
-    </app-blog-edit-drawer>
-
+    <div class="drawer-scroll-container">
+      <app-blog-edit-drawer
+        [blog]="selectedBlog()"
+        [imageUrlError]="imageUrlError()"
+        [hasChanges]="hasChanges()"
+        (save)="addToSaveListFromDrawer()"
+        (cancel)="cancelEdit()"
+        (validate)="validateImageUrl()"
+        (imageError)="onImageError()">
+      </app-blog-edit-drawer>
+    </div>
   </mat-drawer>
 
 </mat-drawer-container>
