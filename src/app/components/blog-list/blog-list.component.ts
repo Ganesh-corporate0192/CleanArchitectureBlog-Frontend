@@ -7,6 +7,8 @@ import { Blog } from '../../models/blog';
 import { BlogService } from '../../services/blog.service';
 import { AlertService } from '../../services/alert.service';
 import { BlogEditDrawerComponent } from '../blog-edit-drawer/blog-edit-drawer.component';
+import { UpsertBlogItemRequest } from '../../models/requests/upsert-multiple-blogs.request';
+
 
 import { MaterialModule } from '../../material/material.module';
 import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
@@ -125,7 +127,7 @@ onSearchChange(value: string): void {
   this.isCreateMode.set(true);
 }
 
-  // 🔥 EDIT START
+  //  EDIT START
   startEdit(blog: Blog): void {
     const cleaned = this.sanitizeBlog({ ...blog });
 
@@ -157,7 +159,7 @@ isSameBlog(a: Blog, b: Blog): boolean {
   return !!a.clientId && a.clientId === b.clientId;
 }
 
-  // 🔥 CALLED FROM CHILD
+  //  CALLED FROM CHILD
   addToSaveListFromDrawer(): void {
     this.addToSaveList();
   }
@@ -255,15 +257,15 @@ saveAll(): void {
 
   this.loading.set(true);
 
-  const payload = edited.map(blog => ({
-    id: blog.id ?? 0,
-    name: blog.name,
-    description: blog.description,
-    author: blog.author,
-    imageUrl: blog.imageUrl
-  }));
+const payload: UpsertBlogItemRequest[] = edited.map(blog => ({
+  id: blog.id ?? 0,
+  name: blog.name,
+  description: blog.description,
+  author: blog.author,
+  imageUrl: blog.imageUrl
+}));
 
-  // ✅ CASE 1: Only delete
+  //  CASE 1: Only delete
   if (payload.length === 0 && deleted.length > 0) {
     this.blogService.deleteMultiple(deleted)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -275,7 +277,7 @@ saveAll(): void {
     return;
   }
 
-  // ✅ CASE 2: Only upsert
+  //  CASE 2: Only upsert
   if (payload.length > 0 && deleted.length === 0) {
     this.blogService.upsertMultipleBlogs(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -287,7 +289,7 @@ saveAll(): void {
     return;
   }
 
-  // ✅ CASE 3: Both upsert + delete
+  // CASE 3: Both upsert + delete
   this.blogService.upsertMultipleBlogs(payload)
     .pipe(takeUntilDestroyed(this.destroyRef))
     .subscribe({
@@ -339,7 +341,7 @@ saveAll(): void {
 
   const isUnsavedNewBlog = (blog.id ?? 0) === 0;
 
-  // ✅ If blog is only local (not saved in DB yet),
+  //  If blog is only local (not saved in DB yet),
   // remove it from UI + edited queue only.
   if (isUnsavedNewBlog) {
     this.blogs.update(list =>
@@ -359,7 +361,7 @@ saveAll(): void {
     return;
   }
 
-  // ✅ Existing saved blog → add to delete queue
+  //  Existing saved blog → add to delete queue
   this.deletedBlogIds.update(ids => {
     if (ids.includes(blog.id!)) return ids;
     return [...ids, blog.id!];
