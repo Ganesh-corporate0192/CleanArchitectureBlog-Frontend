@@ -270,7 +270,9 @@ const payload: UpsertBlogItemRequest[] = edited.map(blog => ({
     this.blogService.deleteMultiple(deleted)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.onSaveSuccess(),
+        next: (count) =>{
+          console.log(`${count} blogs deleted`);
+           this.onSaveSuccess();},
         error: () => this.onSaveError()
       });
 
@@ -297,7 +299,10 @@ const payload: UpsertBlogItemRequest[] = edited.map(blog => ({
         this.blogService.deleteMultiple(deleted)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
-            next: () => this.onSaveSuccess(),
+           next: (count) =>{
+          console.log(`${count} blogs deleted`);
+           this.onSaveSuccess();
+          },
             error: () => this.onSaveError()
           });
       },

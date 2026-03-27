@@ -29,13 +29,10 @@ export class BlogService {
   }
 
   // UPDATE
-  update(blog: Blog): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/Update`, blog);
+  update(blog: Blog): Observable<number> {
+    return this.http.put<number>(`${this.baseUrl}/Update`, blog);
   }
 
-  updateMultipleBlogs(blogs: Blog[]): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/UpdateMultiple`, blogs);
-  }
 
   // UPSERT
   upsertMultipleBlogs(
@@ -48,11 +45,11 @@ export class BlogService {
   }
 
   // DELETE
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/Delete/${id}`);
+  delete(id: number): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.baseUrl}/Delete/${id}`);
   }
 
-  deleteMultiple(ids: number[]): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/DeleteMultiple`, ids);
+  deleteMultiple(ids: number[]): Observable<number> {
+    return this.http.post<number>(`${this.baseUrl}/DeleteMultiple`, ids);
   }
 }
