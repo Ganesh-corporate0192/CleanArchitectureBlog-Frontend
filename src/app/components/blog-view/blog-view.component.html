@@ -1,0 +1,45 @@
+<div class="view-wrapper" *ngIf="!loading() && blog(); else loadingTpl">
+
+  <!-- Header -->
+  <div class="view-header">
+    <button mat-stroked-button color="primary" (click)="goBack()">
+      ← Back
+    </button>
+  </div>
+
+  <!-- Card -->
+  <mat-card class="view-card">
+
+    <!-- Image -->
+    <div class="image-container" *ngIf="blog()?.imageUrl">
+      <img [src]="blog()?.imageUrl" alt="Blog Image" />
+    </div>
+
+    <!-- Content -->
+    <mat-card-content>
+
+      <h1 class="title">{{ blog()?.name }}</h1>
+
+      <p class="author">
+        ✍️ {{ blog()?.author }}
+      </p>
+
+      <mat-divider></mat-divider>
+
+      <p class="description">
+        {{ blog()?.description }}
+      </p>
+
+    </mat-card-content>
+
+  </mat-card>
+
+</div>
+
+<!-- Loader -->
+<ng-template #loadingTpl>
+  <div class="loading-container">
+    <kendo-loader type="infinite-spinner"></kendo-loader>
+    <p>Loading blog...</p>
+  </div>
+</ng-template>

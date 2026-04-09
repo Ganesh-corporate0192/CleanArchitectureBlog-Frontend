@@ -1,6 +1,6 @@
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute ,Router} from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { Blog } from '../../models/blog';
@@ -21,6 +21,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DestroyRef, inject } from '@angular/core';
+import { UiStateService } from '../../services/ui-state.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-blog-list',
@@ -35,7 +37,8 @@ import { DestroyRef, inject } from '@angular/core';
     IndicatorsModule,
     FormsModule,
     BlogEditDrawerComponent,
-    MatPaginatorModule    
+    MatPaginatorModule    ,
+   
   ],
   templateUrl: './blog-list.component.html',
   styleUrls: ['./blog-list.component.css']
@@ -58,6 +61,11 @@ export class BlogListComponent implements OnInit {
   searchText = signal('');
   deletedBlogIds = signal<number[]>([]);
 
+  // API key dialog
+  showApiKeyDialog = signal(false);
+  apiKeyInput = signal('');
+  apiKeyError = signal('');
+
   pageSize = signal(6);
 pageIndex = signal(0);
 pageSizeOptions = [6, 9, 12, 18];
@@ -68,9 +76,12 @@ pageSizeOptions = [6, 9, 12, 18];
     private route: ActivatedRoute,
     private blogService: BlogService,
     private alert: AlertService,
-    private snackBar: MatSnackBar
-  ) {}
+    private snackBar: MatSnackBar,
+    private router: Router,
+    public uiState: UiStateService
+  ) { }
 
+  
   ngOnInit(): void {
     const data = this.route.snapshot.data['blogs'] ?? [];
 
@@ -89,12 +100,12 @@ pageSizeOptions = [6, 9, 12, 18];
       blog.name.toLowerCase().includes(search)
     );
   });
-paginatedBlogs = computed(() => {
-  const start = this.pageIndex() * this.pageSize();
-  const end = start + this.pageSize();
-  return this.filteredBlogs().slice(start, end);
-});
-
+paginatedBlogs(): Blog[] {
+  return this.filteredBlogs().slice(
+    this.pageIndex() * this.pageSize(),
+    (this.pageIndex() + 1) * this.pageSize()
+  );
+}
 onPageChange(event: PageEvent): void {
   this.pageIndex.set(event.pageIndex);
   this.pageSize.set(event.pageSize);
@@ -127,6 +138,41 @@ onSearchChange(value: string): void {
   this.isCreateMode.set(true);
 }
 
+openView(id: number) {
+  this.router.navigate(['/blogs/view', id]);
+}
+
+toggleViewMode() {
+  if (this.uiState.viewMode()) {
+    // Switching to Admin Mode — ask for API key first
+    this.apiKeyInput.set('');
+    this.apiKeyError.set('');
+    this.showApiKeyDialog.set(true);
+  } else {
+    // Switching back to View Mode — clear stored key
+    this.uiState.adminApiKey.set('');
+    this.uiState.viewMode.set(true);
+  }
+}
+
+submitApiKey(): void {
+  const entered = this.apiKeyInput().trim();
+  if (entered !== environment.apiKey) {
+    this.apiKeyError.set('Invalid API key. Please try again.');
+    return;
+  }
+  this.uiState.adminApiKey.set(entered);
+  this.uiState.viewMode.set(false);
+  this.showApiKeyDialog.set(false);
+  this.apiKeyInput.set('');
+  this.apiKeyError.set('');
+}
+
+cancelApiKeyDialog(): void {
+  this.showApiKeyDialog.set(false);
+  this.apiKeyInput.set('');
+  this.apiKeyError.set('');
+}
   //  EDIT START
   startEdit(blog: Blog): void {
     const cleaned = this.sanitizeBlog({ ...blog });

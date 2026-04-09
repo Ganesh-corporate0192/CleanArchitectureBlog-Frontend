@@ -1,190 +1,190 @@
-import { Component, DestroyRef, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { BlogService } from '../../services/blog.service';
-import { Blog } from '../../models/blog';
-import { MaterialModule } from '../../material/material.module';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+// import { Component, DestroyRef, inject } from '@angular/core';
+// import { FormsModule } from '@angular/forms';
+// import { CommonModule } from '@angular/common';
+// import { Router } from '@angular/router';
+// import { BlogService } from '../../services/blog.service';
+// import { Blog } from '../../models/blog';
+// import { MaterialModule } from '../../material/material.module';
+// import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+// import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-@Component({
-  selector: 'app-blog-create',
-  standalone: true,
-  imports: [CommonModule, FormsModule, MaterialModule, MatSnackBarModule],
-  templateUrl: './blog-create.component.html',
-  styleUrls: ['./blog-create.component.css']
-})
-export class BlogCreateComponent {
+// @Component({
+//   selector: 'app-blog-create',
+//   standalone: true,
+//   imports: [CommonModule, FormsModule, MaterialModule, MatSnackBarModule],
+//   templateUrl: './blog-create.component.html',
+//   styleUrls: ['./blog-create.component.css']
+// })
+// export class BlogCreateComponent {
 
-  private destroyRef = inject(DestroyRef);
+//   private destroyRef = inject(DestroyRef);
 
-  blog: Blog = {
-    id: 0,
-    name: '',
-    description: '',
-    author: '',
-    imageUrl: ''
-  };
+//   blog: Blog = {
+//     id: 0,
+//     name: '',
+//     description: '',
+//     author: '',
+//     imageUrl: ''
+//   };
 
-  originalBlog: Blog = { ...this.blog };
+//   originalBlog: Blog = { ...this.blog };
 
-  loading = false;
-  imageUrlError = '';
+//   loading = false;
+//   imageUrlError = '';
 
-  constructor(
-    private blogService: BlogService,
-    private router: Router,
-    private snackBar: MatSnackBar
-  ) {}
+//   constructor(
+//     private blogService: BlogService,
+//     private router: Router,
+//     private snackBar: MatSnackBar
+//   ) {}
 
-  sanitizeBlog(blog: Blog): Blog {
-    return {
-      ...blog,
-      name: blog.name?.trim() ?? '',
-      description: blog.description?.trim() ?? '',
-      author: blog.author?.trim() ?? '',
-      imageUrl: blog.imageUrl?.trim() ?? ''
-    };
-  }
+//   sanitizeBlog(blog: Blog): Blog {
+//     return {
+//       ...blog,
+//       name: blog.name?.trim() ?? '',
+//       description: blog.description?.trim() ?? '',
+//       author: blog.author?.trim() ?? '',
+//       imageUrl: blog.imageUrl?.trim() ?? ''
+//     };
+//   }
 
-  validateImageUrl(): void {
+//   validateImageUrl(): void {
 
-    if (!this.blog.imageUrl) {
-      this.imageUrlError = '';
-      return;
-    }
+//     if (!this.blog.imageUrl) {
+//       this.imageUrlError = '';
+//       return;
+//     }
 
-    try {
-      new URL(this.blog.imageUrl);
-      this.imageUrlError = '';
-    } catch {
-      this.imageUrlError = 'Invalid Image URL';
-    }
+//     try {
+//       new URL(this.blog.imageUrl);
+//       this.imageUrlError = '';
+//     } catch {
+//       this.imageUrlError = 'Invalid Image URL';
+//     }
 
-  }
+//   }
 
-  onImageError(): void {
-    this.imageUrlError = 'Invalid Image URL';
-  }
+//   onImageError(): void {
+//     this.imageUrlError = 'Invalid Image URL';
+//   }
 
-  hasChanges(): boolean {
+//   hasChanges(): boolean {
 
-    const normalize = (v: string | undefined | null) =>
-      (v ?? '').trim();
+//     const normalize = (v: string | undefined | null) =>
+//       (v ?? '').trim();
 
-    return (
-      normalize(this.blog.name) !== normalize(this.originalBlog.name) ||
-      normalize(this.blog.description) !== normalize(this.originalBlog.description) ||
-      normalize(this.blog.author) !== normalize(this.originalBlog.author) ||
-      normalize(this.blog.imageUrl) !== normalize(this.originalBlog.imageUrl)
-    );
+//     return (
+//       normalize(this.blog.name) !== normalize(this.originalBlog.name) ||
+//       normalize(this.blog.description) !== normalize(this.originalBlog.description) ||
+//       normalize(this.blog.author) !== normalize(this.originalBlog.author) ||
+//       normalize(this.blog.imageUrl) !== normalize(this.originalBlog.imageUrl)
+//     );
 
-  }
+//   }
 
-  cancel(): void {
+//   cancel(): void {
 
-    if (this.hasChanges()) {
+//     if (this.hasChanges()) {
 
-      const confirmCancel = confirm(
-        'You have unsaved changes. Do you want to cancel creating this blog?'
-      );
+//       const confirmCancel = confirm(
+//         'You have unsaved changes. Do you want to cancel creating this blog?'
+//       );
 
-      if (!confirmCancel) return;
+//       if (!confirmCancel) return;
 
-    }
+//     }
 
-    this.router.navigate(['/']);
+//     this.router.navigate(['/']);
 
-  }
+//   }
 
-  submit(): void {
+//   submit(): void {
 
-    if (!this.hasChanges()) {
+//     if (!this.hasChanges()) {
 
-      this.snackBar.open(
-        'Nothing to create',
-        'Close',
-        { duration: 2500 }
-      );
+//       this.snackBar.open(
+//         'Nothing to create',
+//         'Close',
+//         { duration: 2500 }
+//       );
 
-      return;
+//       return;
 
-    }
+//     }
 
-    if (this.imageUrlError) return;
+//     if (this.imageUrlError) return;
 
-    this.loading = true;
+//     this.loading = true;
 
-    const cleanedBlog = this.sanitizeBlog(this.blog);
+//     const cleanedBlog = this.sanitizeBlog(this.blog);
 
-    this.blogService.create(cleanedBlog)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
+//     this.blogService.create(cleanedBlog)
+//       .pipe(takeUntilDestroyed(this.destroyRef))
+//       .subscribe({
 
-        next: () => {
+//         next: () => {
 
-          this.loading = false;
+//           this.loading = false;
 
-          this.snackBar.open(
-            'Blog created successfully ✅',
-            'Close',
-            { duration: 3000 }
-          );
+//           this.snackBar.open(
+//             'Blog created successfully ✅',
+//             'Close',
+//             { duration: 3000 }
+//           );
 
-          this.resetForm();
+//           this.resetForm();
 
-          // Navigate back - list already updated via signal
-          this.router.navigate(['/']);
+//           // Navigate back - list already updated via signal
+//           this.router.navigate(['/']);
 
-        },
+//         },
 
-        error: (error) => {
+//         error: (error) => {
 
-          this.loading = false;
+//           this.loading = false;
 
-          this.imageUrlError = '';
+//           this.imageUrlError = '';
 
-          const backendErrors = this.getBackendErrors(error);
+//           const backendErrors = this.getBackendErrors(error);
 
-          const imageError = backendErrors.find(e =>
-            e.toLowerCase().includes('image')
-          );
+//           const imageError = backendErrors.find(e =>
+//             e.toLowerCase().includes('image')
+//           );
 
-          if (imageError) {
-            this.imageUrlError = imageError;
-          }
+//           if (imageError) {
+//             this.imageUrlError = imageError;
+//           }
 
-        }
+//         }
 
-      });
+//       });
 
-  }
+//   }
 
-  resetForm(): void {
+//   resetForm(): void {
 
-    this.blog = {
-      id: 0,
-      name: '',
-      description: '',
-      author: '',
-      imageUrl: ''
-    };
+//     this.blog = {
+//       id: 0,
+//       name: '',
+//       description: '',
+//       author: '',
+//       imageUrl: ''
+//     };
 
-    this.originalBlog = { ...this.blog };
+//     this.originalBlog = { ...this.blog };
 
-  }
+//   }
 
-  private getBackendErrors(error: any): string[] {
+//   private getBackendErrors(error: any): string[] {
 
-    if (error?.error?.errors && Array.isArray(error.error.errors))
-      return error.error.errors;
+//     if (error?.error?.errors && Array.isArray(error.error.errors))
+//       return error.error.errors;
 
-    if (error?.error?.errors && typeof error.error.errors === 'object')
-      return Object.values(error.error.errors).flat() as string[];
+//     if (error?.error?.errors && typeof error.error.errors === 'object')
+//       return Object.values(error.error.errors).flat() as string[];
 
-    return ['Invalid input'];
+//     return ['Invalid input'];
 
-  }
+//   }
 
-}
+// }

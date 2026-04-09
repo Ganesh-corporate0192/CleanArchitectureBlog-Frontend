@@ -1,55 +1,58 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Blog } from '../models/blog';
+import { BlogResponse, CreateBlogCommand, UpdateBlogCommand } from '../models/blog';
 import { UpsertBlogItemRequest } from '../models/requests/upsert-multiple-blogs.request';
 import { UpsertMultipleBlogsResponse } from '../models/responses/upsert-multiple-blogs.response';
+import { UiStateService } from './ui-state.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BlogService {
 
-  private baseUrl = 'http://localhost:5020/Blogs';
+  private baseUrl = '/api/Blogs';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private uiState: UiStateService) {}
 
-  // GET
-  getAll(): Observable<Blog[]> {
-    return this.http.get<Blog[]>(`${this.baseUrl}/GetAll`);
+  private get apiKeyHeaders(): HttpHeaders {
+    return new HttpHeaders({ 'X-Api-Key': this.uiState.adminApiKey() });
   }
 
-  getById(id: number): Observable<Blog> {
-    return this.http.get<Blog>(`${this.baseUrl}/GetById/${id}`);
+  // GET — no API key required
+  getAll(): Observable<BlogResponse[]> {
+    return this.http.get<BlogResponse[]>(`${this.baseUrl}/GetAll`);
   }
 
-  // CREATE
-  create(blog: Blog): Observable<Blog> {
-    return this.http.post<Blog>(`${this.baseUrl}/Create`, blog);
+  getById(id: number): Observable<BlogResponse> {
+    return this.http.get<BlogResponse>(`${this.baseUrl}/GetById/${id}`);
   }
 
-  // UPDATE
-  update(blog: Blog): Observable<number> {
-    return this.http.put<number>(`${this.baseUrl}/Update`, blog);
+  // CREATE — requires API key
+  create(blog: CreateBlogCommand): Observable<number> {
+    return this.http.post<number>(`${this.baseUrl}/Create`, blog, { headers: this.apiKeyHeaders });
   }
 
+  // UPDATE — requires API key
+  update(blog: UpdateBlogCommand): Observable<number> {
+    return this.http.put<number>(`${this.baseUrl}/Update`, blog, { headers: this.apiKeyHeaders });
+  }
 
-  // UPSERT
-  upsertMultipleBlogs(
-    blogs: UpsertBlogItemRequest[]
-  ): Observable<UpsertMultipleBlogsResponse> {
+  // UPSERT — requires API key
+  upsertMultipleBlogs(blogs: UpsertBlogItemRequest[]): Observable<UpsertMultipleBlogsResponse> {
     return this.http.post<UpsertMultipleBlogsResponse>(
       `${this.baseUrl}/UpsertMultiple`,
-      blogs
+      blogs,
+      { headers: this.apiKeyHeaders }
     );
   }
 
-  // DELETE
+  // DELETE — requires API key
   delete(id: number): Observable<boolean> {
-    return this.http.delete<boolean>(`${this.baseUrl}/Delete/${id}`);
+    return this.http.delete<boolean>(`${this.baseUrl}/Delete/${id}`, { headers: this.apiKeyHeaders });
   }
 
   deleteMultiple(ids: number[]): Observable<number> {
-    return this.http.post<number>(`${this.baseUrl}/DeleteMultiple`, ids);
+    return this.http.post<number>(`${this.baseUrl}/DeleteMultiple`, ids, { headers: this.apiKeyHeaders });
   }
 }

@@ -1,3 +1,4 @@
+
 <mat-drawer-container class="drawer-container">
 
   <!-- MAIN CONTENT -->
@@ -30,6 +31,18 @@
           Create Blog
 
         </button>
+        <button
+          mat-raised-button
+          color="accent"
+          (click)="toggleViewMode()">
+
+          <mat-icon>{{ uiState.viewMode() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          {{ uiState.viewMode() ? 'Admin Mode' : 'Enable View Mode' }}
+
+        </button>
+      </div>
+      <div *ngIf="uiState.viewMode()" class="view-mode-banner">
+        👁️ View Mode Enabled - Click a blog to view details
       </div>
 
       <!-- Save + Delete Info -->
@@ -74,7 +87,8 @@
         <kendo-card
           class="blog-card"
           *ngFor="let blog of paginatedBlogs()"
-          [class.edited-card]="editedBlogs().some(b => isSameBlog(b, blog))">
+          [class.edited-card]="editedBlogs().some(b => isSameBlog(b, blog))"
+           (click)="uiState.viewMode() && blog.id && openView(blog.id)">
 
           <!-- New Badge -->
           <div *ngIf="(blog.id ?? 0) === 0" class="unsaved-badge">
@@ -112,7 +126,7 @@
 
           </kendo-card-body>
 
-          <kendo-card-actions>
+          <kendo-card-actions *ngIf="!uiState.viewMode()">
 
             <button
               kendoButton
@@ -175,3 +189,33 @@
   </mat-drawer>
 
 </mat-drawer-container>
+
+<!-- API Key Dialog Overlay -->
+<div *ngIf="showApiKeyDialog()" class="api-key-overlay">
+  <div class="api-key-dialog">
+    <h3><mat-icon style="vertical-align:middle;margin-right:6px;">lock</mat-icon>Admin Access</h3>
+    <p style="color:#555;margin-bottom:16px;">Enter the API key to enable Admin Mode.</p>
+
+    <mat-form-field appearance="outline" style="width:100%;">
+      <mat-label>API Key</mat-label>
+      <input
+        matInput
+        type="password"
+        placeholder="Enter API key..."
+        [ngModel]="apiKeyInput()"
+        (ngModelChange)="apiKeyInput.set($event)"
+        (keydown.enter)="submitApiKey()"
+      />
+      <mat-icon matSuffix>vpn_key</mat-icon>
+    </mat-form-field>
+
+    <div *ngIf="apiKeyError()" class="api-key-error">
+      <mat-icon>error_outline</mat-icon> {{ apiKeyError() }}
+    </div>
+
+    <div class="api-key-actions">
+      <button mat-button (click)="cancelApiKeyDialog()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="submitApiKey()">Unlock</button>
+    </div>
+  </div>
+</div>
